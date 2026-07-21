@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "autosizedgui:block/test_box" }
+  }
+}

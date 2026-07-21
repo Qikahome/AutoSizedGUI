@@ -1,0 +1,83 @@
+plugins {
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.78'
+}
+
+version = '1.0.0'
+group = 'qikahome'
+
+base {
+    archivesName = 'AutoSizedGUI-1.20.1'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+repositories {
+    maven {
+        url 'https://maven.aliyun.com/repository/public'
+        content {
+            includeGroupByRegex '.*'
+        }
+    }
+    mavenCentral()
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+}
+
+legacyForge {
+    version = "1.20.1-47.3.22"
+
+    accessTransformers {
+        file('src/main/resources/META-INF/accesstransformer.cfg')
+    }
+
+    runs {
+        configureEach {
+            gameDirectory = project.file('run')
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+        }
+    }
+
+    mods {
+        autosizedgui {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+}
+
+java {
+    withSourcesJar()
+}
+
+tasks.named("jar") {
+    manifest {
+        attributes([
+                "Specification-Title"     : "autosizedgui",
+                "Specification-Vendor"    : "qikahome",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.version,
+                "Implementation-Vendor"   : "qikahome",
+        ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
