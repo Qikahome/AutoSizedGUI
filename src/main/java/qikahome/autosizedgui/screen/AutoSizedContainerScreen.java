@@ -70,13 +70,9 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
     @Override
     public void render(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(guiGraphics);
-        panel.render(guiGraphics, mouseX, mouseY, partialTicks);
-
-        // Panel updates element positions to reflect scroll offset in renderScrollMode(),
-        // so super.render() naturally renders items at the correct scrolled positions.
+        // super.render() calls this.renderBackground() → dark overlay + panel bg & elements,
+        // then renders item icons in the correct scrolled positions (panel syncs them).
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
-
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
@@ -87,7 +83,8 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
     @Override
     protected void renderBg(@Nonnull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        // Background is rendered by panel's NinePatchRenderer — nothing to do here
+        renderBackground(guiGraphics);
+        panel.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     // ========== Input delegation ==========

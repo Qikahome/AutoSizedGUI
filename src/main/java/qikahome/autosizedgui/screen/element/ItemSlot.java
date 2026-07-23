@@ -17,11 +17,12 @@ public class ItemSlot extends Slot implements ILayoutElement {
         if(slot instanceof ItemSlot iSlot){
             return iSlot;
         }
-        return new ItemSlot(slot.container, slot.getContainerSlot());
+        return new ItemSlot(slot.container, slot.getContainerSlot(), slot.index);
     }
-    
-    public ItemSlot(Container container, int slot) {
-        super(container, slot, 0, 0);
+
+    public ItemSlot(Container container, int containerSlot, int index) {
+        super(container, containerSlot, 0, 0);
+        this.index = index;
     }
 
     public void setActive(boolean active) {

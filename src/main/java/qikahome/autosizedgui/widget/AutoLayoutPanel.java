@@ -40,6 +40,8 @@ public class AutoLayoutPanel {
     private int screenHeight;
     private boolean dirty = true;
     private int lastSyncedPage = -1;
+    /** Last scroll offset applied to element positions via syncPositions(). */
+    private int lastAppliedOffset = Integer.MIN_VALUE;
 
     // Background
     private NinePatchRenderer background;
@@ -436,8 +438,9 @@ public class AutoLayoutPanel {
         ensureLayout();
         if (currentLayout == null) return;
 
-        // Sync slot active states before rendering
+        // Sync slot active states and positions before rendering
         syncSlotActiveStates();
+        syncPositions();
 
         // Render background (if set)
         if (background != null) {
@@ -467,9 +470,8 @@ public class AutoLayoutPanel {
         // 2. Clip viewport (aligned height) and render scrollable content
         gui.enableScissor(flowLeft, flowTop, flowLeft + flowW, flowTop + scrollViewH);
 
-        // Update normal element positions to reflect scroll offset, then render
+        // Render normal elements (positions already synced by syncPositions())
         for (LayoutResult.PositionedElement pe : currentLayout.getNormalPositions()) {
-            pe.element().setPosition(pe.x(), pe.y() - off);
             pe.element().render(gui, mouseX, mouseY, partialTicks);
         }
 
@@ -495,6 +497,27 @@ public class AutoLayoutPanel {
     }
 
     // ========== Input delegation ==========
+
+    /**
+     * Update all element positions to reflect current scroll offset / page.
+     * No-op unless offset or page actually changed.
+     * Must be called before input handling so slot x/y values are correct.
+     */
+    public void syncPositions() {
+        ensureLayout();
+        if (currentLayout == null) return;
+        boolean scrollMode = config.getOverflowMode() == OverflowMode.SCROLL;
+        int off = scrollMode ? scrollController.getScrollOffset() : 0;
+        if (off == lastAppliedOffset) return;
+        lastAppliedOffset = off;
+
+        for (LayoutResult.PositionedElement pe : currentLayout.getNormalPositions()) {
+            pe.element().setPosition(pe.x(), pe.y() - off);
+        }
+        for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
+            pe.element().setPosition(pe.x(), pe.y());
+        }
+    }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         ensureLayout();

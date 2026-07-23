@@ -8,7 +8,7 @@ version="1.0.0"
 displayName="AutoSizedGUI"
 logoFile=""
 credits=""
-authors="qikahome"
+authors="Qikahome"
 description='''
 A library mod that automatically sizes and arranges GUI elements with adaptive layout, scrolling, and pagination support.
 '''
