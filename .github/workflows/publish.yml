@@ -1,0 +1,27 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    branches: [main, 1.21.1-neo]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17 and 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+            21
+          distribution: 'microsoft'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
