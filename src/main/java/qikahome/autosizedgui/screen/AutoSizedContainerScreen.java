@@ -76,19 +76,13 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     @Override
-    public void renderBackground(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-        panel.render(guiGraphics, mouseX, mouseY, partialTicks);
-    }
-
-    @Override
     protected void renderLabels(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // Title is rendered by TitleBar element — nothing to do here
     }
 
     @Override
     protected void renderBg(@Nonnull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        // Background is rendered by panel's NinePatchRenderer — nothing to do here
+        panel.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     // ========== Input delegation ==========
