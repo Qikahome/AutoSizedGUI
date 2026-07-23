@@ -1,20 +1,20 @@
 package qikahome.autosizedgui;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import qikahome.autosizedgui.api.OverflowMode;
 
 public class ModConfig {
 
-    public static final ForgeConfigSpec CLIENT_SPEC;
-    public static final ForgeConfigSpec.BooleanValue ENABLE_SCROLL_PAGINATION;
-    public static final ForgeConfigSpec.IntValue DEFAULT_MAX_HEIGHT;
-    public static final ForgeConfigSpec.IntValue DEFAULT_MAX_WIDTH;
-    public static final ForgeConfigSpec.IntValue DEFAULT_MIN_COLUMNS;
-    public static final ForgeConfigSpec.IntValue DEFAULT_MAX_COLUMNS;
-    public static final ForgeConfigSpec.IntValue DEFAULT_MAX_ROWS;
-    public static final ForgeConfigSpec.EnumValue<OverflowMode> DEFAULT_OVERFLOW_MODE;
+    public static final ModConfigSpec CLIENT_SPEC;
+    public static final ModConfigSpec.BooleanValue ENABLE_SCROLL_PAGINATION;
+    public static final ModConfigSpec.IntValue DEFAULT_MAX_HEIGHT;
+    public static final ModConfigSpec.IntValue DEFAULT_MAX_WIDTH;
+    public static final ModConfigSpec.IntValue DEFAULT_MIN_COLUMNS;
+    public static final ModConfigSpec.IntValue DEFAULT_MAX_COLUMNS;
+    public static final ModConfigSpec.IntValue DEFAULT_MAX_ROWS;
+    public static final ModConfigSpec.EnumValue<OverflowMode> DEFAULT_OVERFLOW_MODE;
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         builder.comment("AutoSizedGUI client settings").push("general");
 

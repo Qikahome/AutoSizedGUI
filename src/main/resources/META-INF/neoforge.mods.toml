@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[4,)"
 license="MIT"
 
 [[mods]]
@@ -14,15 +14,15 @@ A library mod that automatically sizes and arranges GUI elements with adaptive l
 '''
 
 [[dependencies.autosizedgui]]
-    modId="forge"
+    modId="neoforge"
     mandatory=true
-    versionRange="[47,)"
+    versionRange="[21,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.autosizedgui]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20.1,1.21)"
+    versionRange="[1.21.1,1.22)"
     ordering="NONE"
     side="BOTH"

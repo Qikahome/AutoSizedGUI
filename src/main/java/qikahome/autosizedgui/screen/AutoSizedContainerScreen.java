@@ -24,8 +24,7 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         this.containerSize = containerSize;
 
         // Wrap all menu slots with ItemSlot for layout support.
-        // Works with any AbstractContainerMenu — no need to inherit a specific base
-        // class.
+        // Works with any AbstractContainerMenu — no need to inherit a specific base class.
         for (int i = 0; i < menu.slots.size(); i++) {
             menu.slots.set(i, ItemSlot.of(menu.slots.get(i)));
         }
@@ -70,14 +69,16 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
     @Override
     public void render(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(guiGraphics);
-        panel.render(guiGraphics, mouseX, mouseY, partialTicks);
-
-        // Panel updates element positions to reflect scroll offset in renderScrollMode(),
-        // so super.render() naturally renders items at the correct scrolled positions.
+        // super.render() calls this.renderBackground() → dark overlay + panel bg & elements,
+        // then renders item icons in the correct scrolled positions (panel syncs them).
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
-
         this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    @Override
+    public void renderBackground(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        panel.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -114,10 +115,10 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (panel.mouseScrolled(mouseX, mouseY, delta))
+    public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
+        if (panel.mouseScrolled(mouseX, mouseY, deltaY))
             return true;
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
     }
 
     @Override
