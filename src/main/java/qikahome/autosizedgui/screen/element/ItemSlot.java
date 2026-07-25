@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import qikahome.autosizedgui.AutoSizedGUI;
 import qikahome.autosizedgui.api.ILayoutElement;
 
@@ -64,5 +65,10 @@ public class ItemSlot extends Slot implements ILayoutElement {
     public void render(GuiGraphics g, int mx, int my, float pt) {
         // Render slot from texture (0, 16) in gui.png
         g.blit(AutoSizedGUI.BUILT_IN_GUI_TEXTURE, x, y, SLOT_SIZE, SLOT_SIZE, 0, 16, SLOT_SIZE, SLOT_SIZE, 256, 128);
+    }
+
+    @Override
+    public boolean mayPlace(ItemStack stack) {
+        return container.canPlaceItem(this.getContainerSlot(), stack) && super.mayPlace(stack);
     }
 }
