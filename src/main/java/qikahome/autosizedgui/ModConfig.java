@@ -9,6 +9,7 @@ public class ModConfig {
     public static final ForgeConfigSpec.BooleanValue ENABLE_SCROLL_PAGINATION;
     public static final ForgeConfigSpec.IntValue DEFAULT_MAX_HEIGHT;
     public static final ForgeConfigSpec.IntValue DEFAULT_MAX_WIDTH;
+    public static final ForgeConfigSpec.IntValue DEFAULT_MIN_MARGIN;
     public static final ForgeConfigSpec.IntValue DEFAULT_MIN_COLUMNS;
     public static final ForgeConfigSpec.IntValue DEFAULT_MAX_COLUMNS;
     public static final ForgeConfigSpec.IntValue DEFAULT_MAX_ROWS;
@@ -23,12 +24,16 @@ public class ModConfig {
                 .define("enableScrollPagination", true);
 
         DEFAULT_MAX_HEIGHT = builder
-                .comment("Max GUI height in pixels (use negative values as margin from screen edge, e.g. -20 means screenHeight - 20)")
-                .defineInRange("defaultMaxHeight", -20, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                .comment("Max GUI height in pixels (0 for no limit)")
+                .defineInRange("defaultMaxHeight", 0, 0, Integer.MAX_VALUE);
 
         DEFAULT_MAX_WIDTH = builder
-                .comment("Max GUI width in pixels (use negative values as margin from screen edge)")
-                .defineInRange("defaultMaxWidth", -20, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                .comment("Max GUI width in pixels (0 for no limit)")
+                .defineInRange("defaultMaxWidth", 332, 0, Integer.MAX_VALUE);
+
+        DEFAULT_MIN_MARGIN = builder
+                .comment("Minimum margin from screen edges in pixels")
+                .defineInRange("defaultMinMargin", 15, 0, Integer.MAX_VALUE);
 
         DEFAULT_MIN_COLUMNS = builder
                 .comment("Minimum number of columns in the GUI")
