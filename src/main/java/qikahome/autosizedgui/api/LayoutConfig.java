@@ -2,40 +2,34 @@ package qikahome.autosizedgui.api;
 
 import qikahome.autosizedgui.ModConfig;
 
-/**
- * Configuration for the auto-layout engine.
- * <p>
- * {@code maxHeight} and {@code maxWidth} interpret positive values as absolute pixel limits,
- * and negative values as the minimum distance (margin) from the corresponding screen edge.
- * Zero is treated as "no limit".
- */
 public class LayoutConfig {
 
     private int maxHeight = ModConfig.DEFAULT_MAX_HEIGHT.get();
     private int maxWidth = ModConfig.DEFAULT_MAX_WIDTH.get();
+    private int minMargin = ModConfig.DEFAULT_MIN_MARGIN.get();
     private int minColumns = ModConfig.DEFAULT_MIN_COLUMNS.get();
-    private int maxColumns = ModConfig.DEFAULT_MAX_COLUMNS.get();        // -1 = auto
-    private int maxRows = ModConfig.DEFAULT_MAX_ROWS.get();              // -1 = auto
+    private int maxColumns = ModConfig.DEFAULT_MAX_COLUMNS.get();
+    private int maxRows = ModConfig.DEFAULT_MAX_ROWS.get();
     private int elementSpacing = 0;
     private int defaultSlotSize = 18;
     private int paginationButtonHeight = 14;
     private OverflowMode overflowMode = ModConfig.DEFAULT_OVERFLOW_MODE.get();
 
-    // -- Helpers to resolve effective limits given screen dimensions --
-
     public int resolveMaxHeight(int screenHeight) {
-        if (maxHeight < 0) return screenHeight - (2 * -maxHeight);
-        if (maxHeight == 0) return screenHeight;
-        return maxHeight;
+        int marginLimit = screenHeight - (2 * minMargin);
+        if (maxHeight > 0) {
+            return Math.min(marginLimit, maxHeight);
+        }
+        return marginLimit;
     }
 
     public int resolveMaxWidth(int screenWidth) {
-        if (maxWidth < 0) return screenWidth - (2 * -maxWidth);
-        if (maxWidth == 0) return screenWidth;
-        return maxWidth;
+        int marginLimit = screenWidth - (2 * minMargin);
+        if (maxWidth > 0) {
+            return Math.min(marginLimit, maxWidth);
+        }
+        return marginLimit;
     }
-
-    // -- Builder-style setters --
 
     public LayoutConfig setMaxHeight(int maxHeight) {
         this.maxHeight = maxHeight;
@@ -44,6 +38,11 @@ public class LayoutConfig {
 
     public LayoutConfig setMaxWidth(int maxWidth) {
         this.maxWidth = maxWidth;
+        return this;
+    }
+
+    public LayoutConfig setMinMargin(int minMargin) {
+        this.minMargin = Math.max(0, minMargin);
         return this;
     }
 
@@ -82,14 +81,16 @@ public class LayoutConfig {
         return this;
     }
 
-    // -- Getters --
-
     public int getMaxHeight() {
         return maxHeight;
     }
 
     public int getMaxWidth() {
         return maxWidth;
+    }
+
+    public int getMinMargin() {
+        return minMargin;
     }
 
     public int getMinColumns() {
