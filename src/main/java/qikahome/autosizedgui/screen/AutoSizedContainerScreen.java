@@ -19,12 +19,17 @@ import qikahome.autosizedgui.widget.NinePatchRenderer;
 
 public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
 
+    public AutoSizedContainerScreen(T menu, Inventory inventory, Component title) {
+        this(menu, inventory, title, menu.slots.size());
+    }
+
     public AutoSizedContainerScreen(T menu, Inventory inventory, Component title, int containerSize) {
         super(menu, inventory, title);
         this.containerSize = containerSize;
 
         // Wrap all menu slots with ItemSlot for layout support.
-        // Works with any AbstractContainerMenu — no need to inherit a specific base class.
+        // Works with any AbstractContainerMenu — no need to inherit a specific base
+        // class.
         for (int i = 0; i < menu.slots.size(); i++) {
             menu.slots.set(i, ItemSlot.of(menu.slots.get(i)));
         }
@@ -69,7 +74,8 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
     @Override
     public void render(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        // super.render() calls this.renderBackground() → dark overlay + panel bg & elements,
+        // super.render() calls this.renderBackground() → dark overlay + panel bg &
+        // elements,
         // then renders item icons in the correct scrolled positions (panel syncs them).
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
