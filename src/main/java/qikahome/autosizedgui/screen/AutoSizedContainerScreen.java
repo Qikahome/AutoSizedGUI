@@ -164,14 +164,4 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         return super.charTyped(codePoint, modifiers);
     }
 
-    @Override
-    public int getGuiLeft() {
-        return panel.getLayoutLeft();
-    }
-
-    @Override
-    public int getGuiTop() {
-        return panel.getLayoutTop();
-    }
-
 }
