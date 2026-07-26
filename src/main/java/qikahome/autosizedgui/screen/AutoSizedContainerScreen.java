@@ -52,7 +52,6 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     protected void populatePanel() {
-        panel.getConfig().setMinColumns(9);
         panel.setBackground(new NinePatchRenderer(
                 AutoSizedGUI.BUILT_IN_GUI_TEXTURE,
                 0, 0,
