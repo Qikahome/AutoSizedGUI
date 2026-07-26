@@ -5,7 +5,7 @@ build/
 run/
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
-gui.png
+/gui.png
 file
 .eclipse/
 bin/
