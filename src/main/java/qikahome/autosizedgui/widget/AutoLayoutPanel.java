@@ -539,7 +539,7 @@ public class AutoLayoutPanel {
         if (viewH <= 0) return rawSy;
         if (rawSy + element.getHeight() <= relViewTop) {
             // Above viewport — pin to top edge
-            return Math.max(relViewTop + 1, relViewTop);
+            return relViewTop;
         }
         if (rawSy >= relViewTop + viewH) {
             // Below viewport — pin to bottom edge
