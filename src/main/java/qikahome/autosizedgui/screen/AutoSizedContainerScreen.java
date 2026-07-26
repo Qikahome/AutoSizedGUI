@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import qikahome.autosizedgui.AutoSizedGUI;
 import qikahome.autosizedgui.screen.element.ItemSlot;
 import qikahome.autosizedgui.screen.element.PlayerInventory;
@@ -45,10 +46,18 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         populatePanel();
         panel.reflow(width, height);
 
-        this.leftPos = 1;
-        this.topPos = 1;
+        this.leftPos = panel.getLayoutLeft();
+        this.topPos = panel.getLayoutTop();
         this.imageWidth = panel.getLayoutWidth();
         this.imageHeight = panel.getLayoutHeight();
+
+        // Content starts 1px inside the 9-patch background border
+        this.leftPos++;
+        this.topPos++;
+
+        // Make element positions relative to (leftPos, topPos) so they work within
+        // AbstractContainerScreen's translate(leftPos, topPos) coordinate system.
+        panel.setOrigin(leftPos - 1, topPos - 1);
     }
 
     protected void populatePanel() {
@@ -73,9 +82,10 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
     @Override
     public void render(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        // super.render() calls this.renderBackground() → dark overlay + panel bg &
-        // elements,
-        // then renders item icons in the correct scrolled positions (panel syncs them).
+        // super.render() calls this.renderBackground() → dark overlay + panel bg & elements,
+        // then renders item icons (via renderSlot) in the translate(leftPos, topPos) block.
+        // With leftPos/topPos set to actual panel coordinates and element positions relative
+        // to that origin, everything lines up correctly for both us and third-party mods (IPN, JEI).
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
@@ -88,6 +98,26 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     @Override
     protected void renderBg(@Nonnull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         panel.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    // ========== Slot rendering & interaction (scroll-mode compatibility) ==========
+    //
+    // In scroll mode, all slots are kept active (for IPN 1.21.1 grid detection) with
+    // positions clamped to viewport bounds. These overrides skip off-viewport slots
+    // for rendering and interaction so clamped slots don't overlap visually.
+
+    @Override
+    protected void renderSlot(@Nonnull GuiGraphics guiGraphics, Slot slot) {
+        if (slot instanceof ItemSlot is && !is.isInViewport())
+            return;
+        super.renderSlot(guiGraphics, slot);
+    }
+
+    @Override
+    protected boolean isHovering(Slot slot, double mouseX, double mouseY) {
+        if (slot instanceof ItemSlot is && !is.isInViewport())
+            return false;
+        return super.isHovering(slot, mouseX, mouseY);
     }
 
     // ========== Input delegation ==========

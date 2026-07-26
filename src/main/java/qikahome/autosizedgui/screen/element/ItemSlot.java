@@ -12,6 +12,7 @@ import qikahome.autosizedgui.api.ILayoutElement;
 public class ItemSlot extends Slot implements ILayoutElement {
     private static final int SLOT_SIZE = 18;
     private boolean active = true;
+    private boolean inViewport = true;
 
     @Nonnull
     public static ItemSlot of(Slot slot){
@@ -33,6 +34,14 @@ public class ItemSlot extends Slot implements ILayoutElement {
     @Override
     public boolean isActive() {
         return active;
+    }
+
+    public void setInViewport(boolean inViewport) {
+        this.inViewport = inViewport;
+    }
+
+    public boolean isInViewport() {
+        return inViewport;
     }
 
     @Override

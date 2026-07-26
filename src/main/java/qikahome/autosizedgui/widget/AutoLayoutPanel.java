@@ -43,6 +43,10 @@ public class AutoLayoutPanel {
     /** Last scroll offset applied to element positions via syncPositions(). */
     private int lastAppliedOffset = Integer.MIN_VALUE;
 
+    /** Origin offset: subtracted from layout positions to produce relative coords
+     *  (typically set to {@link #getLayoutLeft()}/{@link #getLayoutTop()}). */
+    private int originX, originY;
+
     // Background
     private NinePatchRenderer background;
     private int bgX, bgY, bgWidth, bgHeight;
@@ -88,6 +92,16 @@ public class AutoLayoutPanel {
         return config;
     }
 
+    /**
+     * Set the origin offset. All element positions will be offset by (-ox, -oy)
+     * from the layout engine's absolute positions, making them relative to this origin.
+     * Should be set to ({@link #getLayoutLeft()}, {@link #getLayoutTop()}).
+     */
+    public void setOrigin(int ox, int oy) {
+        this.originX = ox;
+        this.originY = oy;
+    }
+
     // ========== Background ==========
 
     /** Set a 9-patch background renderer. Pass null to disable. */
@@ -113,8 +127,9 @@ public class AutoLayoutPanel {
     public void reflow(int screenWidth, int screenHeight) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        // Force slot active state sync after layout recalculation
+        // Force slot active state and position sync after layout recalculation
         lastSyncedPage = -1;
+        lastAppliedOffset = Integer.MIN_VALUE;
 
         // Calculate with full width; setupScrollMode recalculates if scrollbar space is needed
         this.currentLayout = engine.calculate(elements, config, screenWidth, screenHeight);
@@ -297,6 +312,7 @@ public class AutoLayoutPanel {
      * trigger an unnecessary scrollbar.
      */
     private static int computeScrollViewH(int contentH, int maxViewH, int step) {
+        if (step <= 0) return 0;
         int raw = Math.min(contentH, maxViewH);
         // Ceiling division: (n + d - 1) / d
         int aligned = ((raw + step - 1) / step) * step;
@@ -370,7 +386,6 @@ public class AutoLayoutPanel {
         boolean scrollMode = config.getOverflowMode() == OverflowMode.SCROLL;
 
         if (scrollMode) {
-            // Scroll mode: all normal elements are active
             int off = scrollController.getScrollOffset();
             if (off == lastSyncedPage) return;
             lastSyncedPage = off;
@@ -378,36 +393,41 @@ public class AutoLayoutPanel {
             int flowTop = currentLayout.getFlowAreaTop();
             int flowBottom = flowTop + scrollViewH;
 
+            // Keep all elements active (IPN needs them visible) but track inViewport
+            // for rendering/interaction overrides in the screen.
             for (LayoutResult.PositionedElement pe : currentLayout.getNormalPositions()) {
+                pe.element().setActive(true);
                 int sy = pe.y() - off;
-                // Active only if within the aligned viewport
                 boolean visible = sy + pe.element().getHeight() > flowTop && sy < flowBottom;
-                pe.element().setActive(visible);
+                if (pe.element() instanceof qikahome.autosizedgui.screen.element.ItemSlot is) {
+                    is.setInViewport(visible);
+                }
             }
-            // Fixed elements always active
             for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
                 pe.element().setActive(true);
+                if (pe.element() instanceof qikahome.autosizedgui.screen.element.ItemSlot is) {
+                    is.setInViewport(true);
+                }
             }
         } else {
             int currentPage = paginationController.getCurrentPage();
             if (currentPage == lastSyncedPage) return;
             lastSyncedPage = currentPage;
 
-            // Deactivate all slots first
+            // Keep all elements active (IPN needs them visible) but track inViewport
+            // for rendering/interaction overrides in the screen.
             for (LayoutResult.PositionedElement pe : currentLayout.getNormalPositions()) {
-                pe.element().setActive(false);
+                pe.element().setActive(true);
+                boolean visible = pe.page() == currentPage;
+                if (pe.element() instanceof qikahome.autosizedgui.screen.element.ItemSlot is) {
+                    is.setInViewport(visible);
+                }
             }
             for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-                pe.element().setActive(false);
-            }
-
-            // Activate slots on current page
-            for (LayoutResult.PositionedElement pe : currentLayout.getElementsForPage(currentPage)) {
                 pe.element().setActive(true);
-            }
-            // Fixed elements are always active
-            for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-                pe.element().setActive(true);
+                if (pe.element() instanceof qikahome.autosizedgui.screen.element.ItemSlot is) {
+                    is.setInViewport(true);
+                }
             }
         }
     }
@@ -442,32 +462,47 @@ public class AutoLayoutPanel {
         syncSlotActiveStates();
         syncPositions();
 
-        // Render background (if set)
+        // Render background (if set) — at absolute screen position
         if (background != null) {
             background.render(guiGraphics, bgX, bgY, bgWidth, bgHeight);
         }
 
         boolean scrollMode = config.getOverflowMode() == OverflowMode.SCROLL;
 
+        // Push origin so elements render at absolute screen positions
+        guiGraphics.pose().pushPose();
+        if (originX != 0 || originY != 0) {
+            guiGraphics.pose().translate(originX, originY, 0F);
+        }
+
         if (scrollMode) {
-            renderScrollMode(guiGraphics, mouseX, mouseY, partialTicks);
+            renderScrollContent(guiGraphics, mouseX, mouseY, partialTicks);
         } else {
-            renderPaginateMode(guiGraphics, mouseX, mouseY, partialTicks);
+            renderPaginateContent(guiGraphics, mouseX, mouseY, partialTicks);
+        }
+
+        guiGraphics.pose().popPose();
+
+        // Render controls outside origin translate (they use absolute screen coordinates)
+        if (scrollMode) {
+            scrollController.render(guiGraphics, mouseX, mouseY);
+        } else if (paginationController.isVisible()) {
+            paginationController.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
     }
 
-    private void renderScrollMode(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        int off = scrollController.getScrollOffset();
-        int flowTop = currentLayout.getFlowAreaTop();
-        int flowLeft = currentLayout.getFlowAreaLeft();
-        int flowW = currentLayout.getContentWidth();
-
-        // 1. Render fixed elements (no offset, no clip — they stay in place)
+    /** Render scrollable content (elements only) — called inside origin translate. */
+    private void renderScrollContent(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
+        // Fixed elements
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
             pe.element().render(gui, mouseX, mouseY, partialTicks);
         }
 
-        // 2. Clip viewport (aligned height) and render scrollable content
+        // Scissor uses absolute GUI coordinates (not affected by PoseStack transforms)
+        int flowTop = currentLayout.getFlowAreaTop();
+        int flowLeft = currentLayout.getFlowAreaLeft();
+        int flowW = currentLayout.getContentWidth();
+
         gui.enableScissor(flowLeft, flowTop, flowLeft + flowW, flowTop + scrollViewH);
 
         // Render normal elements (positions already synced by syncPositions())
@@ -476,12 +511,10 @@ public class AutoLayoutPanel {
         }
 
         gui.disableScissor();
-
-        // 4. Render scrollbar
-        scrollController.render(gui, mouseX, mouseY);
     }
 
-    private void renderPaginateMode(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    /** Render paginated content (elements only) — called inside origin translate. */
+    private void renderPaginateContent(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // Render normal elements for current page
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
             pe.element().render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -491,12 +524,29 @@ public class AutoLayoutPanel {
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
             pe.element().render(guiGraphics, mouseX, mouseY, partialTicks);
         }
-
-        // Render pagination buttons
-        paginationController.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     // ========== Input delegation ==========
+
+    /**
+     * Clamp a slot's relative y to the viewport if its scrolled position falls outside.
+     * Above-viewport slots → y = relViewTop + 1.
+     * Below-viewport slots → y = relViewTop + viewH - slotH.
+     * This keeps all slots within screen bounds for third-party mods (IPN 1.21.1)
+     * that determine container layout from slot positions.
+     */
+    private int clampScrollY(int rawSy, ILayoutElement element, int relViewTop, int viewH) {
+        if (viewH <= 0) return rawSy;
+        if (rawSy + element.getHeight() <= relViewTop) {
+            // Above viewport — pin to top edge
+            return Math.max(relViewTop + 1, relViewTop);
+        }
+        if (rawSy >= relViewTop + viewH) {
+            // Below viewport — pin to bottom edge
+            return relViewTop + viewH - element.getHeight();
+        }
+        return rawSy;
+    }
 
     /**
      * Update all element positions to reflect current scroll offset / page.
@@ -511,11 +561,18 @@ public class AutoLayoutPanel {
         if (off == lastAppliedOffset) return;
         lastAppliedOffset = off;
 
+        int relViewTop = scrollMode ? currentLayout.getFlowAreaTop() - originY : 0;
+        int viewH = scrollMode ? scrollViewH : Integer.MAX_VALUE;
+
         for (LayoutResult.PositionedElement pe : currentLayout.getNormalPositions()) {
-            pe.element().setPosition(pe.x(), pe.y() - off);
+            int sx = pe.x() - originX;
+            int rawSy = pe.y() - off - originY;
+            // Clamp off-viewport y to 1 (or viewH - slotH) so third-party mods
+            // (e.g. IPN 1.21.1) can see all slots within screen bounds.
+            pe.element().setPosition(sx, clampScrollY(rawSy, pe.element(), relViewTop, viewH));
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            pe.element().setPosition(pe.x(), pe.y());
+            pe.element().setPosition(pe.x() - originX, pe.y() - originY);
         }
     }
 
