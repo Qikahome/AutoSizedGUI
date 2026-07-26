@@ -20,7 +20,7 @@ import qikahome.autosizedgui.widget.NinePatchRenderer;
 public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
 
     public AutoSizedContainerScreen(T menu, Inventory inventory, Component title) {
-        this(menu, inventory, title, menu.slots.size());
+        this(menu, inventory, title, menu.slots.size() - 36);
     }
 
     public AutoSizedContainerScreen(T menu, Inventory inventory, Component title, int containerSize) {
