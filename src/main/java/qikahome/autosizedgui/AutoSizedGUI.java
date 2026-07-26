@@ -3,6 +3,7 @@ package qikahome.autosizedgui;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -30,14 +31,18 @@ public class AutoSizedGUI {
 
         modBus.addListener(KeyBindings::register);
 
-        // Register test content
-        ModRegistries.register(modBus);
+        // Register test content (dev environment only)
+        if (!FMLLoader.isProduction()) {
+            ModRegistries.register(modBus);
+        }
 
         // Register command on the Forge event bus
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {
-        TestCommand.register(event.getDispatcher());
+        if (!FMLLoader.isProduction()) {
+            TestCommand.register(event.getDispatcher());
+        }
     }
 }
