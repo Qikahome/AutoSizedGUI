@@ -37,7 +37,7 @@ public class ModConfig {
 
         DEFAULT_MIN_COLUMNS = builder
                 .comment("Minimum number of columns in the GUI")
-                .defineInRange("defaultMinColumns", 1, 1, Integer.MAX_VALUE);
+                .defineInRange("defaultMinColumns", 9, 1, Integer.MAX_VALUE);
 
         DEFAULT_MAX_COLUMNS = builder
                 .comment("Maximum number of columns (-1 for auto)")
