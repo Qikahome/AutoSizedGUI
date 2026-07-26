@@ -10,7 +10,7 @@ import qikahome.autosizedgui.api.AttachPosition;
 public class PlayerInventory extends TitleBar {
     private static final int WIDTH = 162;
     private static final int HEIGHT = 88;
-    private static final int[] ROW_Y = { 70, 12, 30, 48 };
+    private static final int[] ROW_Y = { 12, 30, 48, 70 };
 
     public PlayerInventory(Component text, List<ItemSlot> slots) {
         this(text, slots, 4210752);

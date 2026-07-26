@@ -51,6 +51,16 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         this.imageHeight = panel.getLayoutHeight();
     }
 
+    @Override
+    public int getGuiLeft() {
+        return panel.getLayoutLeft();
+    }
+
+    @Override
+    public int getGuiTop() {
+        return panel.getLayoutTop();
+    }
+
     protected void populatePanel() {
         panel.setBackground(new NinePatchRenderer(
                 AutoSizedGUI.BUILT_IN_GUI_TEXTURE,
@@ -132,16 +142,6 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         if (panel.charTyped(codePoint, modifiers))
             return true;
         return super.charTyped(codePoint, modifiers);
-    }
-
-    @Override
-    public int getGuiLeft() {
-        return panel.getLayoutLeft();
-    }
-
-    @Override
-    public int getGuiTop() {
-        return panel.getLayoutTop();
     }
 
 }

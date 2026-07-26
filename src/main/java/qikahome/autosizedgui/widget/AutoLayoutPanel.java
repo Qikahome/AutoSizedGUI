@@ -297,6 +297,7 @@ public class AutoLayoutPanel {
      * trigger an unnecessary scrollbar.
      */
     private static int computeScrollViewH(int contentH, int maxViewH, int step) {
+        if (step <= 0) return 0;
         int raw = Math.min(contentH, maxViewH);
         // Ceiling division: (n + d - 1) / d
         int aligned = ((raw + step - 1) / step) * step;
