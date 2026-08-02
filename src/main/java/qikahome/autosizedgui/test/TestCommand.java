@@ -22,7 +22,7 @@ public class TestCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("autosizedgui")
-                .then(Commands.argument("size", IntegerArgumentType.integer(1, 999))
+                .then(Commands.argument("size", IntegerArgumentType.integer(1, Integer.MAX_VALUE))
                         .executes(ctx -> {
                             int size = IntegerArgumentType.getInteger(ctx, "size");
                             return openTest(ctx.getSource().getPlayerOrException(), size);

@@ -45,6 +45,11 @@ public class ItemSlot extends Slot implements ILayoutElement {
     }
 
     @Override
+    public boolean shouldRender() {
+        return inViewport;
+    }
+
+    @Override
     public int getWidth() {
         return SLOT_SIZE;
     }

@@ -507,7 +507,8 @@ public class AutoLayoutPanel {
 
         // Render normal elements (positions already synced by syncPositions())
         for (LayoutResult.PositionedElement pe : currentLayout.getNormalPositions()) {
-            pe.element().render(gui, mouseX, mouseY, partialTicks);
+            if (pe.element().shouldRender())
+                pe.element().render(gui, mouseX, mouseY, partialTicks);
         }
 
         gui.disableScissor();
