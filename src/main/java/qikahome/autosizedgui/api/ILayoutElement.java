@@ -56,6 +56,14 @@ public interface ILayoutElement {
     void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks);
 
     /**
+     * Whether this element should be rendered this frame.
+     * Used to skip off-viewport elements for performance.
+     */
+    default boolean shouldRender() {
+        return true;
+    }
+
+    /**
      * Whether this element is active (should be rendered and receive input).
      * Used by container screens to hide off-page slots.
      */

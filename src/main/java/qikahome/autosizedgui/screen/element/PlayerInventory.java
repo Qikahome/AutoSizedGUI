@@ -6,22 +6,28 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import qikahome.autosizedgui.AutoSizedGUI;
 import qikahome.autosizedgui.api.AttachPosition;
+import qikahome.autosizedgui.api.ILayoutElement;
 
 public class PlayerInventory extends TitleBar {
     private static final int WIDTH = 162;
     private static final int HEIGHT = 88;
     private static final int[] ROW_Y = { 12, 30, 48, 70 };
 
-    public PlayerInventory(Component text, List<ItemSlot> slots) {
+    /**
+     * 
+     * @param text
+     * @param slots make sure these are player slots;
+     */
+    public PlayerInventory(Component text, List<ILayoutElement> slots) {
         this(text, slots, 4210752);
     }
 
-    public PlayerInventory(Component text, List<ItemSlot> slots, int color) {
+    public PlayerInventory(Component text, List<ILayoutElement> slots, int color) {
         super(text, color);
         this.slots = slots;
     }
 
-    protected final List<ItemSlot> slots;
+    protected final List<ILayoutElement> slots;
 
     @Override
     public int getWidth() {

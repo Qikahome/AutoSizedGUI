@@ -10,7 +10,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import qikahome.autosizedgui.AutoSizedGUI;
+import qikahome.autosizedgui.api.ILayoutElement;
 import qikahome.autosizedgui.screen.element.ItemSlot;
 import qikahome.autosizedgui.screen.element.PlayerInventory;
 import qikahome.autosizedgui.screen.element.TitleBar;
@@ -31,8 +33,14 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         // Works with any AbstractContainerMenu — no need to inherit a specific base
         // class.
         for (int i = 0; i < menu.slots.size(); i++) {
-            menu.slots.set(i, ItemSlot.of(menu.slots.get(i)));
+            menu.slots.set(i, getSlotWrapper(menu.slots.get(i)));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <S extends Slot & ILayoutElement> S getSlotWrapper(Slot slot)
+    {
+        return (S)ItemSlot.of(slot);
     }
 
     protected final int containerSize;
@@ -47,8 +55,8 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
         this.leftPos = 1;
         this.topPos = 1;
-        this.imageWidth = panel.getLayoutWidth();
-        this.imageHeight = panel.getLayoutHeight();
+        this.imageWidth = panel.getLayoutWidth() - 1;
+        this.imageHeight = panel.getLayoutHeight() - 1;
     }
 
     @Override
@@ -62,21 +70,35 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     protected void populatePanel() {
+        addBackground();
+        addTitle();
+        addContainerSlots();
+        addPlayerInventory();
+    }
+
+    protected void addBackground() {
         panel.setBackground(new NinePatchRenderer(
                 AutoSizedGUI.BUILT_IN_GUI_TEXTURE,
                 0, 0,
                 15, 15,
                 256, 128,
                 7, 7, 7, 7));
+    }
 
+    protected void addTitle() {
         panel.addElement(new TitleBar(title));
+    }
 
+    protected void addContainerSlots() {
         for (int i = 0; i < containerSize; i++) {
-            panel.addElement((ItemSlot) menu.slots.get(i));
+            panel.addElement((ILayoutElement) menu.slots.get(i));
         }
-        List<ItemSlot> slots = new ArrayList<>();
+    }
+
+    protected void addPlayerInventory() {
+        List<ILayoutElement> slots = new ArrayList<>();
         for (int i = containerSize; i < menu.slots.size(); i++) {
-            slots.add((ItemSlot) menu.slots.get(i));
+            slots.add((ILayoutElement) menu.slots.get(i));
         }
         panel.addElement(new PlayerInventory(playerInventoryTitle, slots));
     }
