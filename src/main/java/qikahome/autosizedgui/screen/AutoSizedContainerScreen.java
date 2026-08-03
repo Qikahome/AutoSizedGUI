@@ -139,6 +139,21 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
 
     // ========== Input delegation ==========
 
+    /**
+     * Click-outside detection must use the actual panel position (getGuiLeft/Top),
+     * not leftPos/topPos which are only used for slot hit-testing translation.
+     * Without this, a centered panel would close on clicks inside the GUI and
+     * ignore clicks outside it.
+     */
+    @Override
+    public boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
+        int left = getGuiLeft();
+        int top = getGuiTop();
+        return mouseX < left || mouseY < top
+                || mouseX >= left + this.imageWidth
+                || mouseY >= top + this.imageHeight;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (panel.mouseClicked(mouseX, mouseY, button))
