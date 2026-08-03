@@ -4,7 +4,7 @@ plugins {
     id 'net.neoforged.moddev.legacyforge' version '2.0.78'
 }
 
-version = '1.0.7'
+version = '1.0.8'
 group = 'qikahome'
 
 base {
@@ -22,6 +22,13 @@ repositories {
     }
     mavenCentral()
     maven {
+        name 'BlameJared Maven'
+        url 'https://maven.blamejared.com'
+        content {
+            includeGroup 'mezz.jei'
+        }
+    }
+    maven {
         url "https://cursemaven.com"
         content {
             includeGroup "curse.maven"
@@ -30,7 +37,7 @@ repositories {
 }
 
 legacyForge {
-    version = "1.20.1-47.3.22"
+    version = "1.20.1-47.4.0"
 
     accessTransformers {
         file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -59,6 +66,11 @@ legacyForge {
 }
 
 dependencies {
+    // Runtime mods (modRuntimeOnly 会由 legacyForge 自动做 SRG -> named 重映射，对应 ForgeGradle 的 fg.deobf)
+    modRuntimeOnly "mezz.jei:jei-1.20.1-forge:15.21.0.148"
+    modRuntimeOnly "curse.maven:inventory-profiles-next-495267:7565992"
+    modRuntimeOnly "curse.maven:libipn-679177:5208511"
+    modRuntimeOnly "curse.maven:kotlin-for-forge-351264:7291067"
 }
 
 java {
