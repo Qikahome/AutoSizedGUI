@@ -53,20 +53,18 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
         populatePanel();
         panel.reflow(width, height);
 
-        this.leftPos = 1;
-        this.topPos = 1;
+        this.leftPos = panel.getLayoutLeft();
+        this.topPos = panel.getLayoutTop();
         this.imageWidth = panel.getLayoutWidth() - 1;
         this.imageHeight = panel.getLayoutHeight() - 1;
-    }
 
-    @Override
-    public int getGuiLeft() {
-        return panel.getLayoutLeft();
-    }
+        // Content starts 1px inside the 9-patch background border
+        this.leftPos++;
+        this.topPos++;
 
-    @Override
-    public int getGuiTop() {
-        return panel.getLayoutTop();
+        // Make element positions relative to (leftPos, topPos) so they work within
+        // AbstractContainerScreen's translate(leftPos, topPos) coordinate system.
+        panel.setOrigin(leftPos - 1, topPos - 1);
     }
 
     protected void populatePanel() {
