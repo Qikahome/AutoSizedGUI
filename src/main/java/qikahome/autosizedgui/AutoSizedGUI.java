@@ -1,6 +1,7 @@
 package qikahome.autosizedgui;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -29,7 +30,10 @@ public class AutoSizedGUI {
         // Register Forge client config
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, ModConfig.CLIENT_SPEC);
 
-        modBus.addListener(KeyBindings::register);
+        // Register key bindings on the client only
+        if (FMLLoader.getDist() == Dist.CLIENT) {
+            modBus.addListener(KeyBindings::register);
+        }
 
         // Register test content (dev environment only)
         if (!FMLLoader.isProduction()) {
