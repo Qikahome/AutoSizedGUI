@@ -3,10 +3,12 @@ package qikahome.autosizedgui.widget;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import qikahome.autosizedgui.ModConfig;
 import qikahome.autosizedgui.api.AttachPosition;
 import qikahome.autosizedgui.api.ILayoutElement;
+import qikahome.autosizedgui.api.IPanelInfoGetter;
 import qikahome.autosizedgui.api.LayoutConfig;
 import qikahome.autosizedgui.api.LayoutResult;
 import qikahome.autosizedgui.api.OverflowMode;
@@ -28,7 +30,7 @@ import qikahome.autosizedgui.engine.LayoutEngine;
  * panel.render(guiGraphics, mouseX, mouseY, partialTicks);
  * }</pre>
  */
-public class AutoLayoutPanel {
+public class AutoLayoutPanel implements IPanelInfoGetter {
 
     private final List<ILayoutElement> elements = new ArrayList<>();
     private final LayoutEngine engine = new LayoutEngine();
@@ -100,6 +102,16 @@ public class AutoLayoutPanel {
     public void setOrigin(int ox, int oy) {
         this.originX = ox;
         this.originY = oy;
+    }
+
+    @Override
+    public int getOriginX() {
+        return originX;
+    }
+
+    @Override
+    public int getOriginY() {
+        return originY;
     }
 
     // ========== Background ==========
@@ -454,6 +466,9 @@ public class AutoLayoutPanel {
         ensureLayout();
         if (currentLayout == null) return;
 
+        // Advance scrollbar track auto-repeat before syncing positions
+        scrollController.tick(mouseX, mouseY, Util.getMillis());
+
         // Sync slot active states and positions before rendering
         syncSlotActiveStates();
         syncPositions();
@@ -556,10 +571,10 @@ public class AutoLayoutPanel {
         }
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseClicked(mouseX, mouseY, button)) return true;
+            if (pe.element().mouseClicked(this, mouseX, mouseY, button)) return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseClicked(mouseX, mouseY, button)) return true;
+            if (pe.element().mouseClicked(this, mouseX, mouseY, button)) return true;
         }
         return false;
     }
@@ -573,10 +588,10 @@ public class AutoLayoutPanel {
             return true;
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseReleased(mouseX, mouseY, button)) return true;
+            if (pe.element().mouseReleased(this, mouseX, mouseY, button)) return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseReleased(mouseX, mouseY, button)) return true;
+            if (pe.element().mouseReleased(this, mouseX, mouseY, button)) return true;
         }
         return false;
     }
@@ -590,10 +605,10 @@ public class AutoLayoutPanel {
             return true;
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
+            if (pe.element().mouseDragged(this, mouseX, mouseY, button, dragX, dragY)) return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
+            if (pe.element().mouseDragged(this, mouseX, mouseY, button, dragX, dragY)) return true;
         }
         return false;
     }
@@ -621,10 +636,10 @@ public class AutoLayoutPanel {
         }
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseScrolled(mouseX, mouseY, delta)) return true;
+            if (pe.element().mouseScrolled(this, mouseX, mouseY, delta)) return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseScrolled(mouseX, mouseY, delta)) return true;
+            if (pe.element().mouseScrolled(this, mouseX, mouseY, delta)) return true;
         }
         return false;
     }

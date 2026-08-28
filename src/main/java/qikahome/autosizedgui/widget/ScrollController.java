@@ -1,7 +1,9 @@
 package qikahome.autosizedgui.widget;
 
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import qikahome.autosizedgui.AutoSizedGUI;
+import qikahome.autosizedgui.ModConfig;
 
 /**
  * Manages vertical scrolling state and renders a scrollbar
@@ -60,6 +62,12 @@ public class ScrollController {
     private int dragStartOffset;
     private int step = 1;
 
+    // Track auto-repeat state (hold a track click to keep scrolling)
+    private int trackRepeatDir;        // 0 = none, -1 = up, +1 = down
+    private double trackPressY;        // cursor Y being chased (follows the mouse)
+    private long trackRepeatStart;     // timestamp of the last repeat step
+    private boolean trackRepeatArmed;  // initial delay elapsed, repeating
+
     /** Set the snap step for scroll-to and drag (1 = no snap). */
     public void setStep(int step) {
         this.step = Math.max(1, step);
@@ -90,14 +98,6 @@ public class ScrollController {
 
     public int getScrollOffset() {
         return scrollOffset;
-    }
-
-    /** Scroll by a delta in "scroll units" (20 per mouse wheel notch). */
-    public boolean scrollBy(double delta) {
-        int old = scrollOffset;
-        scrollOffset = (int) Math.max(0, Math.min(maxScroll, scrollOffset - delta * 20));
-        snapOffset();
-        return scrollOffset != old;
     }
 
     /** Scroll to an absolute offset (clamped and snapped to step). */
@@ -200,14 +200,63 @@ public class ScrollController {
             dragStartMouseY = mouseY;
             dragStartOffset = scrollOffset;
         } else {
-            // Click on track — page up/down by half viewport
-            if (mouseY < thumbT) {
-                scrollBy(viewportHeight * 0.5);   // scroll up
-            } else {
-                scrollBy(-viewportHeight * 0.5);  // scroll down
-            }
+            // Click on track — scroll one row toward the click; hold to repeat
+            trackRepeatDir = mouseY < thumbT ? -1 : 1;
+            trackPressY = mouseY;
+            trackRepeatArmed = false;
+            trackRepeatStart = Util.getMillis();
+            scrollOneRow(trackRepeatDir);
         }
         return true;
+    }
+
+    /**
+     * Advance the track auto-repeat state. Called every frame from the panel.
+     * While the mouse stays held on the track, keeps scrolling one row toward
+     * the original click direction, following the cursor; stops when the thumb
+     * reaches the cursor or the mouse leaves the scrollbar.
+     */
+    public void tick(double mouseX, double mouseY, long now) {
+        if (trackRepeatDir == 0)
+            return;
+        // Stop once the mouse leaves the scrollbar
+        if (!isMouseOverScrollbar(mouseX, mouseY)) {
+            trackRepeatDir = 0;
+            trackRepeatArmed = false;
+            return;
+        }
+        // Chase the cursor while held
+        trackPressY = mouseY;
+        if (!trackRepeatArmed) {
+            if (now - trackRepeatStart >= ModConfig.SCROLLBAR_TRACK_REPEAT_DELAY.get()) {
+                trackRepeatArmed = true;
+                trackRepeatStart = now;
+            }
+            return;
+        }
+        if (now - trackRepeatStart < ModConfig.SCROLLBAR_TRACK_REPEAT_INTERVAL.get())
+            return;
+        // Stop once the thumb reaches/passes the cursor
+        int thumbT = getThumbTop();
+        if ((trackRepeatDir > 0 && thumbT >= trackPressY)
+                || (trackRepeatDir < 0 && thumbT <= trackPressY)) {
+            trackRepeatDir = 0;
+            trackRepeatArmed = false;
+            return;
+        }
+        if (!scrollOneRow(trackRepeatDir)) {
+            trackRepeatDir = 0;
+            trackRepeatArmed = false;
+            return;
+        }
+        trackRepeatStart = now;
+    }
+
+    /** Scroll one snap step in the given direction (-1 = up, +1 = down). */
+    private boolean scrollOneRow(int dir) {
+        int old = scrollOffset;
+        scrollTo(scrollOffset + dir * step);
+        return scrollOffset != old;
     }
 
     /** Handle mouse drag. Returns true if the scrollbar consumed the event. */
@@ -225,6 +274,8 @@ public class ScrollController {
 
     /** Handle mouse release. Returns true if the scrollbar consumed the event. */
     public boolean mouseReleased() {
+        trackRepeatDir = 0;
+        trackRepeatArmed = false;
         if (dragging) {
             dragging = false;
             return true;
@@ -237,5 +288,7 @@ public class ScrollController {
         scrollOffset = 0;
         maxScroll = 0;
         dragging = false;
+        trackRepeatDir = 0;
+        trackRepeatArmed = false;
     }
 }

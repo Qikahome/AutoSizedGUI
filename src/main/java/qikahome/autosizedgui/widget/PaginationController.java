@@ -35,8 +35,9 @@ public class PaginationController {
     public void updateBounds(int centerX, int buttonY) {
         this.centerX = centerX;
         this.buttonY = buttonY;
-        prevButton.setPosition(centerX - 30, buttonY);
-        nextButton.setPosition(centerX + 10, buttonY);
+        int textLen = String.valueOf(totalPages).length() * 6;
+        prevButton.setPosition(centerX - 25 - textLen, buttonY);
+        nextButton.setPosition(centerX + 5 + textLen, buttonY);
     }
 
     /** Set total page count (must be >= 1). Reset to page 0 if current is out of range. */
@@ -82,14 +83,12 @@ public class PaginationController {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (!visible) return;
         String pageText = (currentPage + 1) + "/" + totalPages;
-        int textWidth = 20; // approximate
-        guiGraphics.drawString(
+        guiGraphics.drawCenteredString(
                 net.minecraft.client.Minecraft.getInstance().font,
-                pageText,
-                centerX - textWidth / 2,
+                Component.literal(pageText),
+                centerX,
                 buttonY + 3,
-                0xFFFFFFFF,
-                true
+                0xFFFFFFFF
         );
         prevButton.render(guiGraphics, mouseX, mouseY, partialTicks);
         nextButton.render(guiGraphics, mouseX, mouseY, partialTicks);
