@@ -1,8 +1,10 @@
 package qikahome.autosizedgui.widget;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 
 /**
  * Handles pagination state and renders prev/next buttons.
@@ -40,7 +42,10 @@ public class PaginationController {
         nextButton.setPosition(centerX + 5 + textLen, buttonY);
     }
 
-    /** Set total page count (must be >= 1). Reset to page 0 if current is out of range. */
+    /**
+     * Set total page count (must be >= 1). Reset to page 0 if current is out of
+     * range.
+     */
     public void setTotalPages(int totalPages) {
         this.totalPages = Math.max(1, totalPages);
         if (currentPage >= this.totalPages) {
@@ -49,11 +54,17 @@ public class PaginationController {
         this.visible = this.totalPages > 1;
     }
 
-    public int getCurrentPage() { return currentPage; }
+    public int getCurrentPage() {
+        return currentPage;
+    }
 
-    public int getTotalPages() { return totalPages; }
+    public int getTotalPages() {
+        return totalPages;
+    }
 
-    public boolean isVisible() { return visible; }
+    public boolean isVisible() {
+        return visible;
+    }
 
     public boolean nextPage() {
         if (currentPage < totalPages - 1) {
@@ -80,25 +91,28 @@ public class PaginationController {
     }
 
     /** Render the pagination buttons. */
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        if (!visible) return;
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        if (!visible)
+            return;
         String pageText = (currentPage + 1) + "/" + totalPages;
-        guiGraphics.drawCenteredString(
+        guiGraphics.centeredText(
                 net.minecraft.client.Minecraft.getInstance().font,
-                Component.literal(pageText),
+                pageText,
                 centerX,
                 buttonY + 3,
-                0xFFFFFFFF
-        );
-        prevButton.render(guiGraphics, mouseX, mouseY, partialTicks);
-        nextButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+                0xFFFFFFFF);
+        prevButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+        nextButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     /** Delegate mouse click to buttons. */
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!visible) return false;
-        if (prevButton.mouseClicked(mouseX, mouseY, button)) return true;
-        if (nextButton.mouseClicked(mouseX, mouseY, button)) return true;
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (!visible)
+            return false;
+        if (prevButton.mouseClicked(event, doubleClick))
+            return true;
+        if (nextButton.mouseClicked(event, doubleClick))
+            return true;
         return false;
     }
 }

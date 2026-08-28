@@ -2,7 +2,8 @@ package qikahome.autosizedgui.screen.element;
 
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import qikahome.autosizedgui.AutoSizedGUI;
 import qikahome.autosizedgui.api.AttachPosition;
@@ -19,7 +20,7 @@ public class PlayerInventory extends TitleBar {
      * @param slots make sure these are player slots;
      */
     public PlayerInventory(Component text, List<ILayoutElement> slots) {
-        this(text, slots, 4210752);
+        this(text, slots, 0xFF404040);
     }
 
     public PlayerInventory(Component text, List<ILayoutElement> slots, int color) {
@@ -61,11 +62,11 @@ public class PlayerInventory extends TitleBar {
     }
 
     @Override
-    public void render(GuiGraphics g, FontGetter font) {
+    public void render(GuiGraphicsExtractor g, FontGetter font) {
         // Render slot from texture (0, 16) in gui.png
-        g.blit(AutoSizedGUI.BUILT_IN_GUI_TEXTURE, x, y, WIDTH, HEIGHT, 18, 0, WIDTH, HEIGHT, 256, 128);
-        g.drawString(
-                font.getFont(),
+        g.blit(RenderPipelines.GUI_TEXTURED, AutoSizedGUI.BUILT_IN_GUI_TEXTURE,
+                x, y, 18, 0, WIDTH, HEIGHT, WIDTH, HEIGHT, 256, 128);
+        g.text(font.getFont(),
                 text,
                 x + 1, y + 1,
                 color, false);

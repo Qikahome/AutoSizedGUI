@@ -2,7 +2,8 @@ package qikahome.autosizedgui.screen.element;
 
 import javax.annotation.Nonnull;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -15,8 +16,8 @@ public class ItemSlot extends Slot implements ILayoutElement {
     private boolean inViewport = true;
 
     @Nonnull
-    public static ItemSlot of(Slot slot){
-        if(slot instanceof ItemSlot iSlot){
+    public static ItemSlot of(Slot slot) {
+        if (slot instanceof ItemSlot iSlot) {
             return iSlot;
         }
         return new ItemSlot(slot.container, slot.getContainerSlot(), slot.index);
@@ -76,9 +77,10 @@ public class ItemSlot extends Slot implements ILayoutElement {
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float pt) {
+    public void render(GuiGraphicsExtractor g, int mx, int my, float pt) {
         // Render slot from texture (0, 16) in gui.png
-        g.blit(AutoSizedGUI.BUILT_IN_GUI_TEXTURE, x, y, SLOT_SIZE, SLOT_SIZE, 0, 16, SLOT_SIZE, SLOT_SIZE, 256, 128);
+        g.blit(RenderPipelines.GUI_TEXTURED, AutoSizedGUI.BUILT_IN_GUI_TEXTURE,
+                x, y, 0, 16, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, 256, 128);
     }
 
     @Override

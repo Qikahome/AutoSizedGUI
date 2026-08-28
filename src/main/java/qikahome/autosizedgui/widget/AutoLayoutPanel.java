@@ -3,8 +3,15 @@ package qikahome.autosizedgui.widget;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.Util;
-import net.minecraft.client.gui.GuiGraphics;
+import org.joml.Matrix3x2f;
+
+import com.mojang.blaze3d.platform.cursor.CursorType;
+
+import net.minecraft.util.Util;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import qikahome.autosizedgui.ModConfig;
 import qikahome.autosizedgui.api.AttachPosition;
 import qikahome.autosizedgui.api.ILayoutElement;
@@ -17,10 +24,12 @@ import qikahome.autosizedgui.engine.LayoutEngine;
 /**
  * The main auto-layout container widget.
  * <p>
- * Manages a list of {@link ILayoutElement}s, runs the layout engine to compute positions,
+ * Manages a list of {@link ILayoutElement}s, runs the layout engine to compute
+ * positions,
  * handles pagination, and delegates rendering and input events to the elements.
  * <p>
  * Usage:
+ * 
  * <pre>{@code
  * AutoLayoutPanel panel = new AutoLayoutPanel();
  * panel.setConfig(new LayoutConfig().setMinColumns(9));
@@ -45,8 +54,10 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
     /** Last scroll offset applied to element positions via syncPositions(). */
     private int lastAppliedOffset = Integer.MIN_VALUE;
 
-    /** Origin offset: subtracted from layout positions to produce relative coords
-     *  (typically set to {@link #getLayoutLeft()}/{@link #getLayoutTop()}). */
+    /**
+     * Origin offset: subtracted from layout positions to produce relative coords
+     * (typically set to {@link #getLayoutLeft()}/{@link #getLayoutTop()}).
+     */
     private int originX, originY;
 
     // Background
@@ -96,7 +107,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
 
     /**
      * Set the origin offset. All element positions will be offset by (-ox, -oy)
-     * from the layout engine's absolute positions, making them relative to this origin.
+     * from the layout engine's absolute positions, making them relative to this
+     * origin.
      * Should be set to ({@link #getLayoutLeft()}, {@link #getLayoutTop()}).
      */
     public void setOrigin(int ox, int oy) {
@@ -143,7 +155,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         lastSyncedPage = -1;
         lastAppliedOffset = Integer.MIN_VALUE;
 
-        // Calculate with full width; setupScrollMode recalculates if scrollbar space is needed
+        // Calculate with full width; setupScrollMode recalculates if scrollbar space is
+        // needed
         this.currentLayout = engine.calculate(elements, config, screenWidth, screenHeight);
 
         if (config.getOverflowMode() == OverflowMode.SCROLL && currentLayout != null) {
@@ -172,12 +185,15 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
      * so pagination buttons sit centered, directly above the flow content.
      */
     private int findTitleBarRowY() {
-        if (currentLayout == null) return 0;
+        if (currentLayout == null)
+            return 0;
         int topY = Integer.MAX_VALUE;
         for (LayoutResult.PositionedElement pe : currentLayout.getElementsForPage(0)) {
-            if (pe.y() < topY) topY = pe.y();
+            if (pe.y() < topY)
+                topY = pe.y();
         }
-        if (topY != Integer.MAX_VALUE) return topY - 14; // 14=buttonH, touches dynamic elements
+        if (topY != Integer.MAX_VALUE)
+            return topY - 14; // 14=buttonH, touches dynamic elements
         return currentLayout.getFlowAreaTop();
     }
 
@@ -197,11 +213,15 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         boolean allSame = true;
         for (LayoutResult.PositionedElement pe : layout.getNormalPositions()) {
             int h = pe.element().getHeight();
-            if (firstH == null) firstH = h;
-            else if (h != firstH) allSame = false;
-            if (h > maxH) maxH = h;
+            if (firstH == null)
+                firstH = h;
+            else if (h != firstH)
+                allSame = false;
+            if (h > maxH)
+                maxH = h;
             int b = pe.y() + h;
-            if (b > maxContentBottom) maxContentBottom = b;
+            if (b > maxContentBottom)
+                maxContentBottom = b;
         }
         ScrollMetrics m = new ScrollMetrics();
         m.flowTop = flowTop;
@@ -231,7 +251,7 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
             m = computeScrollMetrics(currentLayout);
             elementStep = m.elementStep;
             scrollViewH = computeScrollViewH(m.contentH, maxViewH, elementStep);
-            needsScrollbar = m.contentH > scrollViewH;    // re-check after narrower layout
+            needsScrollbar = m.contentH > scrollViewH; // re-check after narrower layout
         }
 
         // ---- Pass 3: adjust centering and close BOTTOM gap for scroll viewport ----
@@ -239,8 +259,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
 
         // Viewport width includes scrollbar track only when scrollbar is visible
         int scrollW = needsScrollbar
-            ? currentLayout.getContentWidth() + ScrollController.getRequiredWidth()
-            : currentLayout.getContentWidth();
+                ? currentLayout.getContentWidth() + ScrollController.getRequiredWidth()
+                : currentLayout.getContentWidth();
 
         scrollController.setContent(m.flowLeft, currentLayout.getFlowAreaTop(), scrollW, scrollViewH, m.contentH);
         scrollController.setStep(elementStep);
@@ -253,8 +273,10 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
      * remove the gap between content end and the viewport bottom.
      */
     private void adjustScrollViewCentering(int oldFlowTop) {
-        if (currentLayout == null) return;
-        if (currentLayout.getNormalPositions().isEmpty()) return;
+        if (currentLayout == null)
+            return;
+        if (currentLayout.getNormalPositions().isEmpty())
+            return;
 
         int maxH = config.resolveMaxHeight(screenHeight);
         int areaTop = (screenHeight - maxH) / 2;
@@ -263,11 +285,12 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         int fixedBottomH = maxH - flowAreaH - fixedTopH;
 
         int actualH = fixedTopH + scrollViewH + fixedBottomH;
-        if (actualH >= maxH) return;                       // content fills the area — nothing to do
+        if (actualH >= maxH)
+            return; // content fills the area — nothing to do
 
         int newAreaTop = (screenHeight - actualH) / 2;
-        int delta = newAreaTop - areaTop;                   // vertical shift for centering
-        int gap = flowAreaH - scrollViewH;                  // extra space between content and BOTTOM area
+        int delta = newAreaTop - areaTop; // vertical shift for centering
+        int gap = flowAreaH - scrollViewH; // extra space between content and BOTTOM area
 
         // Build new LayoutResult with shifted positions & recompute bounds
         int newMinX = Integer.MAX_VALUE, newMinY = Integer.MAX_VALUE;
@@ -279,8 +302,10 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
             pe.element().setPosition(pe.x(), ny);
             newNormals.add(new LayoutResult.PositionedElement(pe.element(), pe.x(), ny, pe.page()));
             int r = pe.x() + pe.element().getWidth();
-            if (pe.x() < newMinX) newMinX = pe.x();
-            if (r > newMaxX) newMaxX = r;
+            if (pe.x() < newMinX)
+                newMinX = pe.x();
+            if (r > newMaxX)
+                newMaxX = r;
             // scroll mode: normal elements don't contribute to Y bounds
             // but adjustScrollViewCentering only runs in scroll mode
         }
@@ -289,16 +314,20 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
             int ny = pe.y() + delta;
             if (isBottomFixed(pe.element())) {
-                ny -= gap;                                  // close the gap for BOTTOM elements
+                ny -= gap; // close the gap for BOTTOM elements
             }
             pe.element().setPosition(pe.x(), ny);
             newFixed.add(new LayoutResult.PositionedElement(pe.element(), pe.x(), ny, -1));
             int r = pe.x() + pe.element().getWidth();
             int b = ny + pe.element().getHeight();
-            if (pe.x() < newMinX) newMinX = pe.x();
-            if (ny < newMinY) newMinY = ny;
-            if (r > newMaxX) newMaxX = r;
-            if (b > newMaxY) newMaxY = b;
+            if (pe.x() < newMinX)
+                newMinX = pe.x();
+            if (ny < newMinY)
+                newMinY = ny;
+            if (r > newMaxX)
+                newMaxX = r;
+            if (b > newMaxY)
+                newMaxY = b;
         }
 
         currentLayout = new LayoutResult(
@@ -307,15 +336,14 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
                 currentLayout.getContentWidth(), currentLayout.getFlowAreaHeight(),
                 currentLayout.getFlowAreaLeft(),
                 oldFlowTop + delta,
-                newMinX, newMinY, newMaxX, newMaxY
-        );
+                newMinX, newMinY, newMaxX, newMaxY);
     }
 
     private static boolean isBottomFixed(ILayoutElement e) {
         var pos = e.getAttachPosition();
         return pos == AttachPosition.BOTTOM
-            || pos == AttachPosition.BOTTOM_LEFT
-            || pos == AttachPosition.BOTTOM_RIGHT;
+                || pos == AttachPosition.BOTTOM_LEFT
+                || pos == AttachPosition.BOTTOM_RIGHT;
     }
 
     /**
@@ -324,7 +352,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
      * trigger an unnecessary scrollbar.
      */
     private static int computeScrollViewH(int contentH, int maxViewH, int step) {
-        if (step <= 0) return 0;
+        if (step <= 0)
+            return 0;
         int raw = Math.min(contentH, maxViewH);
         // Ceiling division: (n + d - 1) / d
         int aligned = ((raw + step - 1) / step) * step;
@@ -337,7 +366,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
 
     /** Scroll down by one uniform-height step. */
     private void scrollDownOneRow() {
-        if (currentLayout == null) return;
+        if (currentLayout == null)
+            return;
         int off = scrollController.getScrollOffset();
         int newOff = Math.min(scrollController.getMaxScroll(), off + elementStep);
         if (newOff != off) {
@@ -348,7 +378,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
 
     /** Scroll up by one uniform-height step. */
     private void scrollUpOneRow() {
-        if (currentLayout == null) return;
+        if (currentLayout == null)
+            return;
         int off = scrollController.getScrollOffset();
         int newOff = Math.max(0, off - elementStep);
         if (newOff != off) {
@@ -359,17 +390,21 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
 
     /** Recompute the screen-space bounding box for the background. */
     private void computeBackgroundBounds() {
-        if (currentLayout == null) return;
-        if (background == null) return;
+        if (currentLayout == null)
+            return;
+        if (background == null)
+            return;
 
         int minX = currentLayout.getContentMinX();
         int minY = currentLayout.getContentMinY();
         int maxX = currentLayout.getContentMaxX();
         int maxY = currentLayout.getContentMaxY();
 
-        if (minX == Integer.MAX_VALUE) return;
+        if (minX == Integer.MAX_VALUE)
+            return;
 
-        // In scroll mode, extend the background rightward to cover the scrollbar (only when visible)
+        // In scroll mode, extend the background rightward to cover the scrollbar (only
+        // when visible)
         if (config.getOverflowMode() == OverflowMode.SCROLL && scrollController.isVisible()) {
             maxX += ScrollController.getRequiredWidth();
         }
@@ -377,7 +412,7 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         // Expand by the 9-patch border sizes
         bgX = minX - background.getLeft();
         bgY = minY - background.getTop();
-        bgWidth  = maxX - minX + background.getLeft() + background.getRight();
+        bgWidth = maxX - minX + background.getLeft() + background.getRight();
         bgHeight = maxY - minY + background.getTop() + background.getBottom();
     }
 
@@ -389,17 +424,20 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
     }
 
     /**
-     * Set {@link Slot#isActive()} on all ItemSlot instances based on current page/scroll.
+     * Set {@link Slot#isActive()} on all ItemSlot instances based on current
+     * page/scroll.
      * Only runs when the page actually changes.
      */
     private void syncSlotActiveStates() {
-        if (currentLayout == null) return;
+        if (currentLayout == null)
+            return;
 
         boolean scrollMode = config.getOverflowMode() == OverflowMode.SCROLL;
 
         if (scrollMode) {
             int off = scrollController.getScrollOffset();
-            if (off == lastSyncedPage) return;
+            if (off == lastSyncedPage)
+                return;
             lastSyncedPage = off;
 
             int flowTop = currentLayout.getFlowAreaTop();
@@ -423,7 +461,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
             }
         } else {
             int currentPage = paginationController.getCurrentPage();
-            if (currentPage == lastSyncedPage) return;
+            if (currentPage == lastSyncedPage)
+                return;
             lastSyncedPage = currentPage;
 
             // Keep all elements active (IPN needs them visible) but track inViewport
@@ -456,8 +495,8 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
      */
     private List<LayoutResult.PositionedElement> visibleNormalElements() {
         return config.getOverflowMode() == OverflowMode.SCROLL
-            ? currentLayout.getNormalPositions()
-            : currentLayout.getElementsForPage(paginationController.getCurrentPage());
+                ? currentLayout.getNormalPositions()
+                : currentLayout.getElementsForPage(paginationController.getCurrentPage());
     }
 
     // ========== Rendering ==========
@@ -466,9 +505,10 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
      * Render the panel and all its elements.
      * Should be called from {@code Screen.render()}.
      */
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         ensureLayout();
-        if (currentLayout == null) return;
+        if (currentLayout == null)
+            return;
 
         // Advance scrollbar track auto-repeat before syncing positions
         scrollController.tick(mouseX, mouseY, Util.getMillis());
@@ -485,9 +525,9 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         boolean scrollMode = config.getOverflowMode() == OverflowMode.SCROLL;
 
         // Push origin so elements render at absolute screen positions
-        guiGraphics.pose().pushPose();
+        guiGraphics.pose().pushMatrix();
         if (originX != 0 || originY != 0) {
-            guiGraphics.pose().translate(originX, originY, 0F);
+            guiGraphics.pose().translate(originX, originY);
         }
 
         if (scrollMode) {
@@ -496,9 +536,26 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
             renderPaginateContent(guiGraphics, mouseX, mouseY, partialTicks);
         }
 
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
 
-        // Render controls outside origin translate (they use absolute screen coordinates)
+        // Poll element cursors (absolute mouse coordinates) before rendering
+        // controls, so overlapping controls that request their own cursor win.
+        // GuiGraphicsExtractor applies the last requested cursor at frame end.
+        for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
+            CursorType cursor = pe.element().getCursor(this, mouseX, mouseY);
+            if (cursor != null) {
+                guiGraphics.requestCursor(cursor);
+            }
+        }
+        for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
+            CursorType cursor = pe.element().getCursor(this, mouseX, mouseY);
+            if (cursor != null) {
+                guiGraphics.requestCursor(cursor);
+            }
+        }
+
+        // Render controls outside origin translate (they use absolute screen
+        // coordinates)
         if (scrollMode) {
             scrollController.render(guiGraphics, mouseX, mouseY);
         } else if (paginationController.isVisible()) {
@@ -506,16 +563,19 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         }
     }
 
-    /** Render scrollable content (elements only) — called inside origin translate. */
-    private void renderScrollContent(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
+    /**
+     * Render scrollable content (elements only) — called inside origin translate.
+     */
+    private void renderScrollContent(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTicks) {
         // Fixed elements
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
             pe.element().render(gui, mouseX, mouseY, partialTicks);
         }
 
-        // Scissor uses absolute GUI coordinates (not affected by PoseStack transforms)
-        int flowTop = currentLayout.getFlowAreaTop();
-        int flowLeft = currentLayout.getFlowAreaLeft();
+        // Scissor uses absolute GUI coordinates (not affected by MatrixStack
+        // transforms)
+        int flowTop = currentLayout.getFlowAreaTop() - originY;
+        int flowLeft = currentLayout.getFlowAreaLeft() - originX;
         int flowW = currentLayout.getContentWidth();
 
         gui.enableScissor(flowLeft, flowTop, flowLeft + flowW, flowTop + scrollViewH);
@@ -529,8 +589,10 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         gui.disableScissor();
     }
 
-    /** Render paginated content (elements only) — called inside origin translate. */
-    private void renderPaginateContent(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    /**
+     * Render paginated content (elements only) — called inside origin translate.
+     */
+    private void renderPaginateContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // Render normal elements for current page
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
             pe.element().render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -545,14 +607,16 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
     // ========== Input delegation ==========
 
     /**
-     * Clamp a slot's relative y to the viewport if its scrolled position falls outside.
+     * Clamp a slot's relative y to the viewport if its scrolled position falls
+     * outside.
      * Above-viewport slots → y = relViewTop + 1.
      * Below-viewport slots → y = relViewTop + viewH - slotH.
      * This keeps all slots within screen bounds for third-party mods (IPN 1.21.1)
      * that determine container layout from slot positions.
      */
     private int clampScrollY(int rawSy, ILayoutElement element, int relViewTop, int viewH) {
-        if (viewH <= 0) return rawSy;
+        if (viewH <= 0)
+            return rawSy;
         if (rawSy + element.getHeight() <= relViewTop) {
             // Above viewport — pin to top edge
             return relViewTop;
@@ -571,10 +635,12 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
      */
     public void syncPositions() {
         ensureLayout();
-        if (currentLayout == null) return;
+        if (currentLayout == null)
+            return;
         boolean scrollMode = config.getOverflowMode() == OverflowMode.SCROLL;
         int off = scrollMode ? scrollController.getScrollOffset() : 0;
-        if (off == lastAppliedOffset) return;
+        if (off == lastAppliedOffset)
+            return;
         lastAppliedOffset = off;
 
         int relViewTop = scrollMode ? currentLayout.getFlowAreaTop() - originY : 0;
@@ -592,62 +658,73 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
         }
     }
 
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         ensureLayout();
-        if (currentLayout == null) return false;
+        if (currentLayout == null)
+            return false;
 
         if (config.getOverflowMode() == OverflowMode.SCROLL) {
-            if (scrollController.mouseClicked(mouseX, mouseY, button)) return true;
-        } else if (paginationController.mouseClicked(mouseX, mouseY, button)) {
+            if (scrollController.mouseClicked(event, doubleClick))
+                return true;
+        } else if (paginationController.mouseClicked(event, doubleClick)) {
             return true;
         }
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseClicked(this, mouseX, mouseY, button)) return true;
+            if (pe.element().mouseClicked(this, event, doubleClick))
+                return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseClicked(this, mouseX, mouseY, button)) return true;
+            if (pe.element().mouseClicked(this, event, doubleClick))
+                return true;
         }
         return false;
     }
 
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         ensureLayout();
-        if (currentLayout == null) return false;
+        if (currentLayout == null)
+            return false;
 
         if (config.getOverflowMode() == OverflowMode.SCROLL
-            && scrollController.mouseReleased())
+                && scrollController.mouseReleased())
             return true;
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseReleased(this, mouseX, mouseY, button)) return true;
+            if (pe.element().mouseReleased(this, event))
+                return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseReleased(this, mouseX, mouseY, button)) return true;
+            if (pe.element().mouseReleased(this, event))
+                return true;
         }
         return false;
     }
 
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         ensureLayout();
-        if (currentLayout == null) return false;
+        if (currentLayout == null)
+            return false;
 
         if (config.getOverflowMode() == OverflowMode.SCROLL
-            && scrollController.mouseDragged(mouseX, mouseY, button))
+                && scrollController.mouseDragged(event.x(), event.y(), event.button()))
             return true;
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseDragged(this, mouseX, mouseY, button, dragX, dragY)) return true;
+            if (pe.element().mouseDragged(this, event, dragX, dragY))
+                return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseDragged(this, mouseX, mouseY, button, dragX, dragY)) return true;
+            if (pe.element().mouseDragged(this, event, dragX, dragY))
+                return true;
         }
         return false;
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         ensureLayout();
-        if (currentLayout == null) return false;
+        if (currentLayout == null)
+            return false;
 
         if (config.getOverflowMode() == OverflowMode.SCROLL) {
             if (scrollController.isVisible()) {
@@ -663,60 +740,70 @@ public class AutoLayoutPanel implements IPanelInfoGetter {
 
         // Pagination via scroll wheel (controlled by config)
         if (ModConfig.ENABLE_SCROLL_PAGINATION.get() && paginationController.isVisible()) {
-            if (delta < 0) return paginationController.nextPage();
-            if (delta > 0) return paginationController.prevPage();
+            if (delta < 0)
+                return paginationController.nextPage();
+            if (delta > 0)
+                return paginationController.prevPage();
         }
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().mouseScrolled(this, mouseX, mouseY, delta)) return true;
+            if (pe.element().mouseScrolled(this, mouseX, mouseY, delta))
+                return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().mouseScrolled(this, mouseX, mouseY, delta)) return true;
+            if (pe.element().mouseScrolled(this, mouseX, mouseY, delta))
+                return true;
         }
         return false;
     }
 
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         ensureLayout();
-        if (currentLayout == null) return false;
+        if (currentLayout == null)
+            return false;
 
         if (config.getOverflowMode() == OverflowMode.SCROLL) {
             // Scroll via keyboard (up/down arrows)
             if (scrollController.isVisible()) {
-                if (keyCode == 265) { // up arrow
+                if (event.key() == 265) { // up arrow
                     scrollUpOneRow();
                     return true;
                 }
-                if (keyCode == 264) { // down arrow
+                if (event.key() == 264) { // down arrow
                     scrollDownOneRow();
                     return true;
                 }
             }
         } else if (paginationController.isVisible()) {
-            if (qikahome.autosizedgui.KeyBindings.PREV_PAGE.matches(keyCode, scanCode))
+            if (qikahome.autosizedgui.KeyBindings.PREV_PAGE.matches(event))
                 return paginationController.prevPage();
-            if (qikahome.autosizedgui.KeyBindings.NEXT_PAGE.matches(keyCode, scanCode))
+            if (qikahome.autosizedgui.KeyBindings.NEXT_PAGE.matches(event))
                 return paginationController.nextPage();
         }
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().keyPressed(keyCode, scanCode, modifiers)) return true;
+            if (pe.element().keyPressed(event))
+                return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().keyPressed(keyCode, scanCode, modifiers)) return true;
+            if (pe.element().keyPressed(event))
+                return true;
         }
         return false;
     }
 
-    public boolean charTyped(char codePoint, int modifiers) {
+    public boolean charTyped(CharacterEvent event) {
         ensureLayout();
-        if (currentLayout == null) return false;
+        if (currentLayout == null)
+            return false;
 
         for (LayoutResult.PositionedElement pe : visibleNormalElements()) {
-            if (pe.element().charTyped(codePoint, modifiers)) return true;
+            if (pe.element().charTyped(event))
+                return true;
         }
         for (LayoutResult.PositionedElement pe : currentLayout.getFixedElements()) {
-            if (pe.element().charTyped(codePoint, modifiers)) return true;
+            if (pe.element().charTyped(event))
+                return true;
         }
         return false;
     }

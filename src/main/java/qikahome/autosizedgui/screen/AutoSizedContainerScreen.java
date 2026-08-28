@@ -5,8 +5,11 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -38,9 +41,8 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     @SuppressWarnings("unchecked")
-    protected <S extends Slot & ILayoutElement> S getSlotWrapper(Slot slot)
-    {
-        return (S)ItemSlot.of(slot);
+    protected <S extends Slot & ILayoutElement> S getSlotWrapper(Slot slot) {
+        return (S) ItemSlot.of(slot);
     }
 
     protected final int containerSize;
@@ -102,32 +104,34 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     @Override
-    public void render(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    public void extractRenderState(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
-    protected void renderLabels(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         // Title is rendered by TitleBar element — nothing to do here
     }
 
     @Override
-    protected void renderBg(@Nonnull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        panel.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractBackground(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        panel.render(graphics, mouseX, mouseY, partialTick);
     }
 
-    // ========== Slot rendering & interaction (scroll-mode compatibility) ==========
+    // ========== Slot rendering & interaction (scroll-mode compatibility)
+    // ==========
     //
-    // In scroll mode, all slots are kept active (for IPN 1.21.1 grid detection) with
+    // In scroll mode, all slots are kept active (for IPN 1.21.1 grid detection)
+    // with
     // positions clamped to viewport bounds. These overrides skip off-viewport slots
     // for rendering and interaction so clamped slots don't overlap visually.
 
     @Override
-    protected void renderSlot(@Nonnull GuiGraphics guiGraphics, Slot slot) {
+    protected void extractSlot(@Nonnull GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY) {
         if (slot instanceof ItemSlot is && !is.isInViewport())
             return;
-        super.renderSlot(guiGraphics, slot);
+        super.extractSlot(graphics, slot, mouseX, mouseY);
     }
 
     @Override
@@ -146,33 +150,33 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
      * ignore clicks outside it.
      */
     @Override
-    public boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
-        int left = getGuiLeft();
-        int top = getGuiTop();
+    public boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop) {
+        int left = getLeftPos();
+        int top = getTopPos();
         return mouseX < left || mouseY < top
                 || mouseX >= left + this.imageWidth
                 || mouseY >= top + this.imageHeight;
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (panel.mouseClicked(mouseX, mouseY, button))
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (panel.mouseClicked(event, doubleClick))
             return true;
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (panel.mouseReleased(mouseX, mouseY, button))
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (panel.mouseReleased(event))
             return true;
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (panel.mouseDragged(mouseX, mouseY, button, dragX, dragY))
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        if (panel.mouseDragged(event, dragX, dragY))
             return true;
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
@@ -183,17 +187,17 @@ public class AutoSizedContainerScreen<T extends AbstractContainerMenu> extends A
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (panel.keyPressed(keyCode, scanCode, modifiers))
+    public boolean keyPressed(KeyEvent event) {
+        if (panel.keyPressed(event))
             return true;
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean charTyped(char codePoint, int modifiers) {
-        if (panel.charTyped(codePoint, modifiers))
+    public boolean charTyped(CharacterEvent event) {
+        if (panel.charTyped(event))
             return true;
-        return super.charTyped(codePoint, modifiers);
+        return super.charTyped(event);
     }
 
 }

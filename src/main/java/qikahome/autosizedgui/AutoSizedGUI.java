@@ -1,6 +1,6 @@
 package qikahome.autosizedgui;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -22,7 +22,7 @@ import qikahome.autosizedgui.test.TestCommand;
  */
 @Mod(AutoSizedGUI.MOD_ID)
 public class AutoSizedGUI {
-    public static final ResourceLocation BUILT_IN_GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath("autosizedgui", "textures/gui/gui.png");
+    public static final Identifier BUILT_IN_GUI_TEXTURE = Identifier.fromNamespaceAndPath("autosizedgui", "textures/gui/gui.png");
     public static final String MOD_ID = "autosizedgui";
 
     public AutoSizedGUI(IEventBus modBus, ModContainer modContainer) {
@@ -30,12 +30,12 @@ public class AutoSizedGUI {
         modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT, qikahome.autosizedgui.ModConfig.CLIENT_SPEC);
 
         // Register key bindings on the client only
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             modBus.addListener(KeyBindings::register);
         }
 
         // Register test content (dev environment only)
-        if (!FMLLoader.isProduction()) {
+        if (!FMLLoader.getCurrent().isProduction()) {
             ModRegistries.register(modBus);
         }
 
@@ -44,7 +44,7 @@ public class AutoSizedGUI {
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {
-        if (!FMLLoader.isProduction()) {
+        if (!FMLLoader.getCurrent().isProduction()) {
             TestCommand.register(event.getDispatcher());
         }
     }

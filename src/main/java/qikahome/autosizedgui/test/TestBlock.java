@@ -29,7 +29,7 @@ public class TestBlock extends Block {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (player instanceof ServerPlayer serverPlayer) {
             int count = slotCount;
             serverPlayer.openMenu(new MenuProvider() {

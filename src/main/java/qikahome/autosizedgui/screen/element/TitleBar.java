@@ -1,7 +1,7 @@
 package qikahome.autosizedgui.screen.element;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import qikahome.autosizedgui.api.AttachPosition;
 import qikahome.autosizedgui.api.ILayoutElement;
@@ -12,7 +12,7 @@ public class TitleBar implements ILayoutElement {
     protected int x, y;
 
     public TitleBar(Component text) {
-        this(text, 4210752);
+        this(text, 0xFF404040);
     }
 
     public TitleBar(Component text, int color) {
@@ -57,12 +57,12 @@ public class TitleBar implements ILayoutElement {
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float pt) {
+    public void render(GuiGraphicsExtractor g, int mx, int my, float pt) {
         render(g, () -> net.minecraft.client.Minecraft.getInstance().font);
     }
 
-    public void render(GuiGraphics g, FontGetter font) {
-        g.drawString(
+    public void render(GuiGraphicsExtractor g, FontGetter font) {
+        g.text(
                 font.getFont(),
                 text,
                 x + 1, y - 1,

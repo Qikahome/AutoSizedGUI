@@ -31,7 +31,11 @@ public class TestContainer extends AbstractContainerMenu {
         }
 
         // Player inventory: 3 rows + hotbar
-        for (int col = 0; col < 36; col++) {
+        for (int col = 9; col < 36; col++) {
+            addSlot(new Slot(playerInventory, col, 0, 0));
+        }
+
+        for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, 0, 0));
         }
     }

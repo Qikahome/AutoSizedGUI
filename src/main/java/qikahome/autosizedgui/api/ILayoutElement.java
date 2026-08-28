@@ -1,11 +1,18 @@
 package qikahome.autosizedgui.api;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.platform.cursor.CursorType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Base interface for any element that can be placed and rendered within an {@code AutoLayoutPanel}.
+ * Base interface for any element that can be placed and rendered within an
+ * {@code AutoLayoutPanel}.
  * <p>
- * Elements can participate in the normal flow layout or be fixed at a specific position
+ * Elements can participate in the normal flow layout or be fixed at a specific
+ * position
  * within the panel (see {@link #getAttachPosition()}).
  */
 public interface ILayoutElement {
@@ -19,7 +26,8 @@ public interface ILayoutElement {
     /**
      * How this element is attached/positioned within the panel.
      * <p>
-     * {@link AttachPosition#NONE} means the element participates in normal flow layout
+     * {@link AttachPosition#NONE} means the element participates in normal flow
+     * layout
      * and is affected by scrolling/pagination.
      * Any other value fixes the element at that position.
      */
@@ -53,7 +61,7 @@ public interface ILayoutElement {
     void setPosition(int x, int y);
 
     /** Render this element at its assigned position. */
-    void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks);
+    void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks);
 
     /**
      * Whether this element should be rendered this frame.
@@ -86,59 +94,76 @@ public interface ILayoutElement {
     // (panel.getOriginX()/getOriginY()) to convert your own bounds to screen
     // space, or subtract it from the event coordinates to compare directly.
 
-    /// @deprecated use #mouseClicked(IPanelInfoGetter, double, double, int) instead.
-    @Deprecated(forRemoval = true)
-    default boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return false;
+    default boolean mouseClicked(IPanelInfoGetter panel, MouseButtonEvent event, boolean doubleClick) {
+        return mouseClicked(panel, event.x(), event.y(), event.button());
     }
 
-    @SuppressWarnings("deprecation")
     default boolean mouseClicked(IPanelInfoGetter panel, double mouseX, double mouseY, int button) {
-        return mouseClicked(mouseX, mouseY, button);
-    }
-
-    /// @deprecated use #mouseReleased(IPanelInfoGetter, double, double, int) instead.
-    @Deprecated(forRemoval = true)
-    default boolean mouseReleased(double mouseX, double mouseY, int button) {
         return false;
     }
 
-    @SuppressWarnings("deprecation")
+    default boolean mouseReleased(IPanelInfoGetter panel, MouseButtonEvent event) {
+        return mouseReleased(panel, event.x(), event.y(), event.button());
+    }
+
     default boolean mouseReleased(IPanelInfoGetter panel, double mouseX, double mouseY, int button) {
-        return mouseReleased(mouseX, mouseY, button);
-    }
-
-    /// @deprecated use #mouseDragged(IPanelInfoGetter, double, double, int, double, double) instead.
-    @Deprecated(forRemoval = true)
-    default boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         return false;
     }
 
-    @SuppressWarnings("deprecation")
+    default boolean mouseDragged(IPanelInfoGetter panel, MouseButtonEvent event, double dragX, double dragY) {
+        return mouseDragged(panel, event.x(), event.y(), event.button(), dragX, dragY);
+    }
+
     default boolean mouseDragged(IPanelInfoGetter panel, double mouseX, double mouseY, int button, double dragX, double dragY) {
-        return mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    /// @deprecated use #mouseScrolled(IPanelInfoGetter, double, double, double) instead.
-    @Deprecated(forRemoval = true)
-    default boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         return false;
     }
 
-    @SuppressWarnings("deprecation")
     default boolean mouseScrolled(IPanelInfoGetter panel, double mouseX, double mouseY, double delta) {
-        return mouseScrolled(mouseX, mouseY, delta);
+        return false;
     }
 
+    /**
+     * Returns the cursor to display while the mouse is over this element, or
+     * {@code null} to leave the cursor unchanged. Called every frame during
+     * render state extraction.
+     * <p>
+     * {@code mouseX/mouseY} are absolute screen coordinates — add the panel
+     * origin ({@code panel.getOriginX()/getOriginY()}) to {@code getX()/getY()}
+     * to compare against your own bounds. The last non-null cursor requested
+     * this frame wins.
+     */
+    @Nullable
+    default CursorType getCursor(IPanelInfoGetter panel, double mouseX, double mouseY) {
+        return null;
+    }
+    
+    default boolean keyPressed(KeyEvent event) {
+        return keyPressed(event.key(), event.scancode(), event.modifiers());
+    }
+
+    /// @deprecated use #keyPressed(KeyEvent) instead.
+    @Deprecated(forRemoval = true)
     default boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         return false;
     }
 
+    default boolean keyReleased(KeyEvent event) {
+        return keyReleased(event.key(), event.scancode(), event.modifiers());
+    }
+
+    /// @deprecated use #keyReleased(KeyEvent) instead.
+    @Deprecated(forRemoval = true)
     default boolean keyReleased(int keyCode, int scanCode, int modifiers) {
         return false;
     }
 
+    default boolean charTyped(CharacterEvent event) {
+        return charTyped((char) event.codepoint(),0);
+    }
+    /// @deprecated use #charTyped(CharacterEvent) instead.
+    @Deprecated(forRemoval = true)
     default boolean charTyped(char codePoint, int modifiers) {
         return false;
     }
+
 }
