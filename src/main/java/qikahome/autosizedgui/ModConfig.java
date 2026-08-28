@@ -14,6 +14,8 @@ public class ModConfig {
     public static final ModConfigSpec.IntValue DEFAULT_MAX_COLUMNS;
     public static final ModConfigSpec.IntValue DEFAULT_MAX_ROWS;
     public static final ModConfigSpec.EnumValue<OverflowMode> DEFAULT_OVERFLOW_MODE;
+    public static final ModConfigSpec.IntValue SCROLLBAR_TRACK_REPEAT_DELAY;
+    public static final ModConfigSpec.IntValue SCROLLBAR_TRACK_REPEAT_INTERVAL;
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -50,6 +52,14 @@ public class ModConfig {
         DEFAULT_OVERFLOW_MODE = builder
                 .comment("Default overflow mode for the GUI")
                 .defineEnum("defaultOverflowMode", OverflowMode.SCROLL);
+
+        SCROLLBAR_TRACK_REPEAT_DELAY = builder
+                .comment("Initial delay in ms before the scrollbar track click starts auto-repeating")
+                .defineInRange("scrollbarTrackRepeatDelay", 400, 0, 2000);
+
+        SCROLLBAR_TRACK_REPEAT_INTERVAL = builder
+                .comment("Repeat interval in ms while holding the scrollbar track")
+                .defineInRange("scrollbarTrackRepeatInterval", 80, 1, 500);
 
         builder.pop();
         CLIENT_SPEC = builder.build();

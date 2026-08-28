@@ -80,21 +80,54 @@ public interface ILayoutElement {
     }
 
     // -- Event delegation --
+    //
+    // Mouse events carry ABSOLUTE screen coordinates. An element's getX()/getY()
+    // are relative to the panel content origin — add the panel's origin
+    // (panel.getOriginX()/getOriginY()) to convert your own bounds to screen
+    // space, or subtract it from the event coordinates to compare directly.
 
+    /// @deprecated use #mouseClicked(IPanelInfoGetter, double, double, int) instead.
+    @Deprecated(forRemoval = true)
     default boolean mouseClicked(double mouseX, double mouseY, int button) {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
+    default boolean mouseClicked(IPanelInfoGetter panel, double mouseX, double mouseY, int button) {
+        return mouseClicked(mouseX, mouseY, button);
+    }
+
+    /// @deprecated use #mouseReleased(IPanelInfoGetter, double, double, int) instead.
+    @Deprecated(forRemoval = true)
     default boolean mouseReleased(double mouseX, double mouseY, int button) {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
+    default boolean mouseReleased(IPanelInfoGetter panel, double mouseX, double mouseY, int button) {
+        return mouseReleased(mouseX, mouseY, button);
+    }
+
+    /// @deprecated use #mouseDragged(IPanelInfoGetter, double, double, int, double, double) instead.
+    @Deprecated(forRemoval = true)
     default boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
+    default boolean mouseDragged(IPanelInfoGetter panel, double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    /// @deprecated use #mouseScrolled(IPanelInfoGetter, double, double, double) instead.
+    @Deprecated(forRemoval = true)
     default boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         return false;
+    }
+
+    @SuppressWarnings("deprecation")
+    default boolean mouseScrolled(IPanelInfoGetter panel, double mouseX, double mouseY, double delta) {
+        return mouseScrolled(mouseX, mouseY, delta);
     }
 
     default boolean keyPressed(int keyCode, int scanCode, int modifiers) {
