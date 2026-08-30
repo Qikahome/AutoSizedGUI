@@ -62,10 +62,10 @@ neoForge {
 }
 
 dependencies {
-    implementation "curse.maven:jei-238222:5846880"
-    implementation "curse.maven:inventory-profiles-next-495267:7810574"
-    implementation "curse.maven:kotlin-for-forge-351264:8335665"
-    implementation "curse.maven:libipn-679177:7810552"
+    runtimeOnly "curse.maven:jei-238222:5846880"
+    runtimeOnly "curse.maven:inventory-profiles-next-495267:7810574"
+    runtimeOnly "curse.maven:kotlin-for-forge-351264:8335665"
+    runtimeOnly "curse.maven:libipn-679177:7810552"
 }
 
 java {
