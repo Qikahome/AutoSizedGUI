@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="autosizedgui"
-version="1.0.0"
+version="${file.jarVersion}"
 displayName="AutoSizedGUI"
 logoFile=""
 credits=""
