@@ -1,0 +1,108 @@
+// neoforge: NeoForge 1.21.1 入口模块。将 common 的源码/资源并入 main sourceSet，
+// 产出自包含 jar（含 common 类与 assets），发布坐标 qikahome:AutoSizedGUI-1.21.1-neoforge。
+plugins {
+    id 'net.neoforged.moddev'
+    id 'maven-publish'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-1.21.1-neoforge'
+}
+
+java {
+    withSourcesJar()
+}
+
+def commonProject = project(':common')
+sourceSets {
+    main {
+        java.srcDirs(commonProject.sourceSets.main.java.srcDirs)
+        resources.srcDirs(commonProject.sourceSets.main.resources.srcDirs)
+    }
+}
+
+neoForge {
+    version = neoforge_version
+
+    // AT 文件（Slot.x/y、isHovering 访问点位于 common 的 screen 代码，但 AT 文件只需 neoforge 打包/应用）
+    accessTransformers {
+        file("${projectDir}/src/main/resources/META-INF/accesstransformer.cfg")
+    }
+
+    runs {
+        configureEach {
+            gameDirectory = rootProject.file('run')
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+        }
+    }
+
+    mods {
+        autosizedgui {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    runtimeOnly "curse.maven:jei-238222:8807104"
+    runtimeOnly "curse.maven:inventory-profiles-next-495267:7810574"
+    runtimeOnly "curse.maven:kotlin-for-forge-351264:8335665"
+    runtimeOnly "curse.maven:libipn-679177:7810552"
+}
+
+tasks.named("jar") {
+    manifest {
+        attributes([
+                "Specification-Title"     : "autosizedgui",
+                "Specification-Vendor"    : "qikahome",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.version,
+                "Implementation-Vendor"   : "qikahome",
+        ])
+    }
+}
+
+// 与 fabric 侧一致：版本号在构建期替换进 neoforge.mods.toml，
+// 避免依赖 ${file.jarVersion}（运行时读 jar manifest，dev 环境会是 0.0NONE）
+processResources {
+    inputs.property "version", project.version
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version
+    }
+    // common 的 AW 是 fabric 专属（neoforge 用 AT），不进 neoforge jar
+    exclude "autosizedgui.accesswidener"
+}
+
+publishing {
+    publications {
+        // 兼容旧坐标（重构前单 loader 发布名为 qikahome:AutoSizedGUI-1.21.1），下游依赖无需改坐标
+        mavenLegacy(MavenPublication) {
+            artifactId = 'AutoSizedGUI-1.21.1'
+            from components.java
+        }
+        // 新坐标：带 -neoforge 后缀，与 fabric 侧 -fabric 后缀对应
+        mavenNeo(MavenPublication) {
+            artifactId = 'AutoSizedGUI-1.21.1-neoforge'
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/Qikahome/AutoSizedGUI"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}

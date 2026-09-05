@@ -1,0 +1,29 @@
+// common: 纯 vanilla 代码模块（api/engine/screen/widget 等）。
+// 用 fabric-loom 提供 mojmap 的纯 Minecraft 类独立编译，供 IDE/静态校验；
+// 访问点（Slot.x/y 可写、isHovering 可覆写）经 Access Widener 放行（loom 明确支持 mutable/extendable，
+// 而 moddev 的 vanilla-mode 不应用 AT，故不用它）。
+// 两个 loader 模块把本模块的 src/main 并入自身 sourceSet，产物自包含，common 本身不发布 jar。
+plugins {
+    id 'fabric-loom' version '1.13.6'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-1.21.1-common'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+dependencies {
+    // 仅需 Minecraft 类（mojmap 命名），不引入 fabric-loader / fabric-api —— 纯 vanilla 编译
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    // common 源码使用 javax.annotation.Nonnull；loom 的 MC 依赖不传递该注解，需显式声明
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+loom {
+    // common 源码访问需求（Slot.x/y、isHovering），与 fabric 模块共用同一份
+    accessWidenerPath = file("src/main/resources/autosizedgui.accesswidener")
+}

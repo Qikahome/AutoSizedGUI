@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "autosizedgui",
+  "version": "${version}",
+  "name": "AutoSizedGUI",
+  "description": "A library mod that automatically sizes and arranges GUI elements with adaptive layout, scrolling, and pagination support.",
+  "license": "MIT",
+  "authors": [
+    "Qikahome"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "qikahome.autosizedgui.AutoSizedGUI"
+    ],
+    "client": [
+      "qikahome.autosizedgui.AutoSizedGUI"
+    ]
+  },
+  "accessWidener": "autosizedgui.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

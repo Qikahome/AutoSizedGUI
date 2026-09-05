@@ -1,0 +1,90 @@
+// fabric: Fabric 1.21.1 入口模块。将 common 的源码/资源并入 main sourceSet，
+// 由 loom 统一 remap（intermediary），产出自包含 jar：qikahome:AutoSizedGUI-1.21.1-fabric。
+// loom 1.13.6：需要 Gradle 8.14+；且生态新版 mod（JEI 等）用 1.13.x 构建，低版本 loom 拒绝加载
+plugins {
+    id 'fabric-loom' version '1.13.6'
+    id 'maven-publish'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-1.21.1-fabric'
+}
+
+java {
+    withSourcesJar()
+}
+
+def commonProject = project(':common')
+sourceSets {
+    main {
+        java.srcDirs(commonProject.sourceSets.main.java.srcDirs)
+        resources.srcDirs(commonProject.sourceSets.main.resources.srcDirs)
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    // 与 NeoForge 侧同为 mojmap 命名，common 源码可直接并入编译
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    // common 源码使用 javax.annotation.Nonnull；fabric 的 MC 依赖不传递该注解，需显式声明
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+    // dev 运行环境周边 mod（对应 NeoForge 侧的 runtimeOnly）。
+    // 用 modRuntimeOnly：loom 会把这些 jar 重映射到 named（mojmap），否则 AW/类引用以
+    // intermediary 加载会崩（"Namespace (intermediary) does not match ... (named)"）
+    modRuntimeOnly "curse.maven:jei-238222:8807102"
+    // IPN 组合：从 fabricmc 官方 maven 拉 FLK（带完整 POM），gradle 自动递归带入
+    // kotlin-stdlib / kotlinx-serialization 等运行库到 classpath——libIPN 运行时依赖它们，
+    // 而 curse maven 只发裸 jar 无 POM，且 FLK 的 nested jar 在 loom dev 环境不展开
+    modRuntimeOnly "net.fabricmc:fabric-language-kotlin:1.13.13+kotlin.2.4.10"
+    modRuntimeOnly "curse.maven:inventory-profiles-next-495267:7818183"
+    modRuntimeOnly "curse.maven:libipn-679177:7810548"
+}
+
+loom {
+    // AW 与 common 共用同一份（common 源码访问需求声明）
+    accessWidenerPath = file("${commonProject.projectDir}/src/main/resources/autosizedgui.accesswidener")
+
+    runs {
+        configureEach {
+            // 与 neoforge 共用 root/run（串行使用，目录相对 fabric 模块）
+            runDir = "../run"
+        }
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+    // 注：AT 文件已归 neoforge 模块，common 无 META-INF，fabric jar 无 NeoForge 资源泄漏
+}
+
+publishing {
+    publications {
+        // fabric 只发带 -fabric 后缀的坐标（qikahome:AutoSizedGUI-1.21.1-fabric），与 neoforge 双坐标区分
+        mavenFabric(MavenPublication) {
+            artifactId = 'AutoSizedGUI-1.21.1-fabric'
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/Qikahome/AutoSizedGUI"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}

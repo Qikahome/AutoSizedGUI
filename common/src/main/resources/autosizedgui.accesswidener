@@ -1,0 +1,9 @@
+accessWidener v2 named
+
+# common 源码的访问需求声明（mojmap 命名）：
+# - Slot.x/y：mojmap 为 public final，common 布局时要写入 → AW 用 mutable（去 final）
+# - isHovering(Slot,dd)：mojmap 为 public final，common 要覆写 → AW 用 extendable（允许覆写）
+# 该文件同时供 common 独立编译（loom）与 fabric 模块（运行时）使用。
+mutable field net/minecraft/world/inventory/Slot x I
+mutable field net/minecraft/world/inventory/Slot y I
+extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen isHovering (Lnet/minecraft/world/inventory/Slot;DD)Z
