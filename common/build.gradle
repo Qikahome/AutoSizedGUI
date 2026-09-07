@@ -1,0 +1,22 @@
+// common: 纯 vanilla 共享代码（引擎/API/widget/screen + 共享资源）。
+// 以 fabric-loom 的 vanilla 模式编译：official mojmap + Access Widener，
+// 不依赖任何 loader 专属类。两个 loader 模块把本模块源码/资源并入各自 main。
+plugins {
+    id 'fabric-loom' version '1.13.6'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-1.20.1-common'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    // 源码使用 javax.annotation.Nonnull；loom 的 MC 依赖不传递该注解
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+loom {
+    // common 源码的访问需求声明（Slot.x/y 可写、AbstractContainerMenu.slots 可读）
+    accessWidenerPath = file("src/main/resources/autosizedgui.accesswidener")
+}

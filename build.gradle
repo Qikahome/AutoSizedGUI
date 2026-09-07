@@ -1,114 +1,56 @@
+// Root build: orchestration only — no loader plugin is applied here.
 plugins {
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev.legacyforge' version '2.0.78'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.78' apply false
 }
 
-version = '1.1.0c'
-group = 'qikahome'
+subprojects {
+    apply plugin: 'java-library'
 
-base {
-    archivesName = 'AutoSizedGUI-1.20.1'
-}
+    group = rootProject.property('group')
+    version = rootProject.property('mod_version')
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-repositories {
-    maven {
-        url 'https://maven.aliyun.com/repository/public'
-        content {
-            includeGroupByRegex '.*'
-        }
-    }
-    mavenCentral()
-    maven {
-        name 'BlameJared Maven'
-        url 'https://maven.blamejared.com'
-        content {
-            includeGroup 'mezz.jei'
-        }
-    }
-    maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-}
-
-legacyForge {
-    version = "1.20.1-47.4.0"
-
-    accessTransformers {
-        file('src/main/resources/META-INF/accesstransformer.cfg')
-    }
-
-    runs {
-        configureEach {
-            gameDirectory = project.file('run')
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-
-        client {
-            client()
-        }
-
-        server {
-            server()
-        }
-    }
-
-    mods {
-        autosizedgui {
-            sourceSet(sourceSets.main)
-        }
-    }
-}
-
-dependencies {
-    // Runtime mods (modRuntimeOnly 会由 legacyForge 自动做 SRG -> named 重映射，对应 ForgeGradle 的 fg.deobf)
-    modRuntimeOnly "mezz.jei:jei-1.20.1-forge:15.21.0.148"
-    modRuntimeOnly "curse.maven:inventory-profiles-next-495267:7565992"
-    modRuntimeOnly "curse.maven:libipn-679177:5208511"
-    modRuntimeOnly "curse.maven:kotlin-for-forge-351264:7291067"
-}
-
-java {
-    withSourcesJar()
-}
-
-tasks.named("jar") {
-    manifest {
-        attributes([
-                "Specification-Title"     : "autosizedgui",
-                "Specification-Vendor"    : "qikahome",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.version,
-                "Implementation-Vendor"   : "qikahome",
-        ])
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = base.archivesName.get()
-            from components.java
-        }
-    }
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/Qikahome/AutoSizedGUI"
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+            // hanbings 第三方代理：镜像 fabricmc/mavenCentral 等，缓解国外源过慢（若失效可移除）
+            url 'https://repository.hanbings.io/proxy/'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/public'
+            content {
+                includeGroupByRegex '.*'
             }
         }
+        mavenCentral()
+        maven {
+            // Minecraft 运行库（text2speech 等 Mojang 专属，仅发布于官方库）
+            url "https://libraries.minecraft.net/"
+        }
+        maven {
+            url "https://maven.neoforged.net/releases"
+        }
+        maven {
+            url "https://maven.fabricmc.net/"
+        }
+        maven {
+            name 'BlameJared Maven'
+            url 'https://maven.blamejared.com'
+            content {
+                includeGroup 'mezz.jei'
+            }
+        }
+        maven {
+            url "https://cursemaven.com"
+            content {
+                includeGroup "curse.maven"
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
     }
 }

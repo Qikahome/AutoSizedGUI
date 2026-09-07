@@ -1,0 +1,90 @@
+// fabric: Fabric 1.20.1 入口模块。将 common 的源码/资源并入 main sourceSet，
+// 由 loom 统一 remap（intermediary），产出自包含 jar：qikahome:AutoSizedGUI-1.20.1-fabric。
+plugins {
+    id 'fabric-loom' version '1.13.6'
+    id 'maven-publish'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-1.20.1-fabric'
+}
+
+java {
+    withSourcesJar()
+}
+
+def commonProject = project(':common')
+sourceSets {
+    main {
+        java.srcDirs(commonProject.sourceSets.main.java.srcDirs)
+        resources.srcDirs(commonProject.sourceSets.main.resources.srcDirs)
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    // 与 forge 侧同为 mojmap 命名，common 源码可直接并入编译
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    // common 源码使用 javax.annotation.Nonnull；fabric 的 MC 依赖不传递该注解
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+    // dev 运行环境周边 mod（对应 forge 侧的 modRuntimeOnly）。
+    // 用 modRuntimeOnly：loom 会把这些 jar 重映射到 named（mojmap），否则以 intermediary 加载会崩
+    // JEI 走 blamejared 官方 maven（与 forge 侧同为 15.21.0.148，2024 构建，兼容本工程 loom 1.13.6）。
+    // 注意：curse 上 1.20.1 JEI 最新版（2026）由 loom 1.17 构建，dev 加载会报
+    // "Mod was built with a newer version of Loom" 守卫错误，故不使用。
+    modRuntimeOnly "mezz.jei:jei-1.20.1-fabric:15.21.0.148"
+    // FLK 全版本兼容，从 fabricmc 官方 maven 拉（带完整 POM），gradle 自动递归带入
+    // kotlin-stdlib / kotlinx-serialization 等运行库——libIPN 运行时依赖它们，
+    // 而 curse maven 只发裸 jar 无 POM，且 FLK 的 nested jar 在 loom dev 环境不展开
+    modRuntimeOnly "net.fabricmc:fabric-language-kotlin:1.13.13+kotlin.2.4.10"
+    modRuntimeOnly "curse.maven:inventory-profiles-next-495267:7566002"
+    modRuntimeOnly "curse.maven:libipn-679177:5208506"
+}
+
+loom {
+    // AW 与 common 共用同一份（common 源码访问需求声明：Slot.x/y 可写、AbstractContainerMenu.slots 可读）
+    accessWidenerPath = file("${commonProject.projectDir}/src/main/resources/autosizedgui.accesswidener")
+
+    runs {
+        configureEach {
+            // 与 forge 共用 root/run（串行使用，目录相对 fabric 模块）
+            runDir = "../run"
+        }
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+publishing {
+    publications {
+        // fabric 只发带 -fabric 后缀的坐标（qikahome:AutoSizedGUI-1.20.1-fabric），与 forge 双坐标区分
+        mavenFabric(MavenPublication) {
+            artifactId = 'AutoSizedGUI-1.20.1-fabric'
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/Qikahome/AutoSizedGUI"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
