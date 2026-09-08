@@ -1,0 +1,45 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.16.3'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-26.1.2-fabric'
+}
+
+def commonProject = project(':common')
+
+sourceSets.main {
+    java.srcDirs(commonProject.sourceSets.main.java.srcDirs)
+    resources.srcDirs(commonProject.sourceSets.main.resources.srcDirs)
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    // 26.1+ unobfuscated：Loom 不再 remap，mod 依赖一律用普通 implementation/compileOnly
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+loom {
+    accessWidenerPath = file("${commonProject.projectDir}/src/main/resources/autosizedgui.accesswidener")
+    runs {
+        configureEach {
+            // 相对 fabric 模块目录 = root/run（与 neoforge 共享同一运行目录）
+            runDir = '../run'
+        }
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}

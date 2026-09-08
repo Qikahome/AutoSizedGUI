@@ -1,105 +1,46 @@
 plugins {
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.144'
 }
 
-version = '1.1.0d'
-group = 'qikahome'
+subprojects {
+    apply plugin: 'java-library'
 
-base {
-    archivesName = 'AutoSizedGUI-26.1.2'
-}
+    group = rootProject.property('group')
+    version = rootProject.property('mod_version')
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
-
-repositories {
-    maven {
-        url 'https://maven.aliyun.com/repository/public'
-        content {
-            includeGroupByRegex '.*'
-        }
-    }
-    mavenCentral()
-    maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-}
-
-neoForge {
-    version = "26.1.2.99"
-
-    accessTransformers {
-        file('src/main/resources/META-INF/accesstransformer.cfg')
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
+        withSourcesJar()
     }
 
-    runs {
-        configureEach {
-            gameDirectory = project.file('run')
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-
-        client {
-            client()
-        }
-
-        server {
-            server()
-        }
-    }
-
-    mods {
-        autosizedgui {
-            sourceSet(sourceSets.main)
-        }
-    }
-}
-
-dependencies {
-    runtimeOnly "curse.maven:jei-238222:8752596"
-    runtimeOnly "curse.maven:inventory-profiles-next-495267:8610197"
-    runtimeOnly "curse.maven:libipn-679177:8608757"
-}
-
-java {
-    withSourcesJar()
-}
-
-tasks.named("jar") {
-    manifest {
-        attributes([
-                "Specification-Title"     : "autosizedgui",
-                "Specification-Vendor"    : "qikahome",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.version,
-                "Implementation-Vendor"   : "qikahome",
-        ])
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = base.archivesName.get()
-            from components.java
-        }
-    }
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/Qikahome/AutoSizedGUI"
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
+            // 国内镜像兜底（hanbings 第三方全量代理，失效可注释）
+            url 'https://repository.hanbings.io/proxy/'
+            content { includeGroupByRegex '.*' }
         }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        mavenCentral()
+        maven {
+            url 'https://libraries.minecraft.net/'
+            content { includeGroup 'com.mojang' }
+        }
+        maven {
+            url 'https://maven.neoforged.net/releases'
+            content { includeGroupByRegex 'net\\.neoforged.*' }
+        }
+        maven {
+            url 'https://maven.fabricmc.net/'
+            content { includeGroupByRegex 'net\\.fabricmc.*' }
+        }
+        maven {
+            url 'https://cursemaven.com'
+            content { includeGroup 'curse.maven' }
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
     }
 }

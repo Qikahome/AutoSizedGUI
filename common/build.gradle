@@ -1,0 +1,18 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.16.3'
+}
+
+base {
+    archivesName = 'AutoSizedGUI-26.1.2-common'
+}
+
+// common 仅以纯 vanilla（官方名，26.1+ 无混淆无映射）编译，验证引擎源码不依赖任何 loader。
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/autosizedgui.accesswidener')
+}
