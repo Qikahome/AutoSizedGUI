@@ -46,4 +46,12 @@ subprojects {
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
     }
+
+    // MIT：再分发（含 jar-in-jar 内嵌）须随附版权与许可声明，故打进 jar 与 sources jar
+    tasks.named('jar', Jar) {
+        from(rootProject.file('LICENSE')) { into 'META-INF' }
+    }
+    tasks.matching { it.name == 'sourcesJar' }.configureEach {
+        it.from(rootProject.file('LICENSE')) { into 'META-INF' }
+    }
 }
