@@ -56,6 +56,9 @@ dependencies {
     runtimeOnly "curse.maven:inventory-profiles-next-495267:7810574"
     runtimeOnly "curse.maven:kotlin-for-forge-351264:8335665"
     runtimeOnly "curse.maven:libipn-679177:7810552"
+
+    // IPN 编译期依赖（不打包，仅供源码引用 IPN API）
+    compileOnly "curse.maven:inventory-profiles-next-495267:7810574"
 }
 
 tasks.named("jar") {
