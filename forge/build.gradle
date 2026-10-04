@@ -33,6 +33,10 @@ legacyForge {
         configureEach {
             gameDirectory = rootProject.file('run')
             logLevel = org.slf4j.event.Level.DEBUG
+            // dev 环境下 mod 是 classes 目录、没有 manifest，需显式把 mixin config 传给 ModLauncher；
+            // 打包 jar 时由 manifest 的 MixinConfigs 负责
+            programArgument "--mixin.config"
+            programArgument "autosizedgui.mixins.json"
         }
 
         client {
@@ -57,6 +61,9 @@ dependencies {
     modRuntimeOnly "curse.maven:inventory-profiles-next-495267:7565992"
     modRuntimeOnly "curse.maven:libipn-679177:5208511"
     modRuntimeOnly "curse.maven:kotlin-for-forge-351264:7291067"
+
+    // IPN 编译期依赖（不打包，仅供源码引用 IPN API）
+    modCompileOnly "curse.maven:inventory-profiles-next-495267:7565992"
 }
 
 tasks.named("jar") {
@@ -68,6 +75,8 @@ tasks.named("jar") {
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.version,
                 "Implementation-Vendor"   : "qikahome",
+                // Forge 1.20.1 通过 jar manifest 注册 mixin 配置
+                "MixinConfigs"            : "autosizedgui.mixins.json",
         ])
     }
 }

@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "qikahome.autosizedgui.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "MixinContainerClicker"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
